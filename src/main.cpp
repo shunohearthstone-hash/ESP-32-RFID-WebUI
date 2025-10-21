@@ -4,23 +4,35 @@
 #include <SPI.h>
 #include <Wire.h>
 #include <MFRC522.h>
-#include <U8g2lib.h>
+#include <U8x8lib.h>
 #include <ArduinoJson.h>
 
+// Forward declarations
+String getUidString();
+void displayInit();
+void displayStatus(const char* s);
+void updateDisplay();
+void drawEnrollIndicator(bool on);
+JsonDocument postLastScan(const String &uid);
+bool checkAuthorized(const String &uid);
+void updateEnrollStatus();
+
 // ----------------- CONFIG -----------------
-const char* SSID = "YOUR_WIFI";
-const char* PASS = "YOUR_PASS";
-const char* SERVER_BASE = "http://192.168.1.100:5000"; // change to your Flask server IP
+const char* SSID = "Rasmus 5 GHz";
+const char* PASS = "Frt56789!";
+const char* SERVER_BASE = "http://192.168.1.240:5000"; // change to your Flask server IP
 
 // RFID (SPI) pins
-#define RST_PIN    4
+#define RST_PIN    17
 #define SS_PIN     5
 MFRC522 rfid(SS_PIN, RST_PIN);
 
-// u8x8 (SSD1306 I2C text-only) constructor
-// If your display is 128x64 SSD1306 on I2C (0x3C), this works:
+// u8x8 (I2C text-only) constructor
+// Use a supported driver; if your display is SSD1315 try the SSD1306-compatible driver below,
+// or switch to a U8G2_SSD1315_128X64_NONAME_1_HW_I2C constructor if your library provides it.
 // U8X8_R0 rotation, reset pin none (U8X8_PIN_NONE)
-U8X8_SSD1306_128X64_NONAME_1_HW_I2C u8x8(U8X8_R0, /* reset=*/ U8X8_PIN_NONE);
+U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8( /* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE);
+
 
 // small helpers
 String lastUID = "NONE";
@@ -76,7 +88,7 @@ void loop() {
     lastUID = uid;
 
     // report to server (this will perform enroll action if server is in enroll mode)
-    DynamicJsonDocument resp = postLastScan(uid);
+    JsonDocument resp = postLastScan(uid);
 
     if (!resp.isNull()) {
       // server returns {"ok":true,"enrolled":true/false,...} per our API
@@ -187,8 +199,8 @@ void drawEnrollIndicator(bool on) {
 }
 
 // POST /api/last_scan { uid: "..." }
-DynamicJsonDocument postLastScan(const String &uid) {
-  if (WiFi.status() != WL_CONNECTED) return DynamicJsonDocument(1);
+JsonDocument postLastScan(const String &uid) {
+  if (WiFi.status() != WL_CONNECTED) return JsonDocument();
   HTTPClient http;
   String url = String(SERVER_BASE) + "/api/last_scan";
   http.begin(url);
@@ -198,15 +210,15 @@ DynamicJsonDocument postLastScan(const String &uid) {
   if (code != 200 && code != 201 && code != 202) {
     Serial.printf("POST last_scan failed: %d\n", code);
     http.end();
-    return DynamicJsonDocument(1);
+    return JsonDocument();
   }
-  String resp = http.getString();
+  String respStr = http.getString();
   http.end();
-  DynamicJsonDocument doc(256);
-  DeserializationError err = deserializeJson(doc, resp);
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, respStr);
   if (err) {
     Serial.println("JSON parse failed");
-    return DynamicJsonDocument(1);
+    return JsonDocument();
   }
   return doc;
 }
@@ -220,10 +232,10 @@ bool checkAuthorized(const String &uid) {
   int code = http.GET();
   bool auth = false;
   if (code == 200) {
-    String resp = http.getString();
-    DynamicJsonDocument doc(128);
-    if (!deserializeJson(doc, resp)) {
-      if (doc.containsKey("authorized")) auth = doc["authorized"];
+    String respStr = http.getString();
+    JsonDocument doc;
+    if (!deserializeJson(doc, respStr)) {
+      if (doc["authorized"].is<bool>()) auth = doc["authorized"];
     }
   } else {
     // not found or error -> treat as unauthorized
@@ -244,18 +256,18 @@ void updateEnrollStatus() {
   http.begin(url);
   int code = http.GET();
   if (code == 200) {
-    String resp = http.getString();
-    DynamicJsonDocument doc(256);
-    if (!deserializeJson(doc, resp)) {
-      if (doc.containsKey("enroll_mode")) {
-        String m = String((const char*)doc["enroll_mode"]);
+    String respStr = http.getString();
+    JsonDocument doc;
+    if (!deserializeJson(doc, respStr)) {
+      if (doc["enroll_mode"].is<const char*>()) {
+        String m = String(doc["enroll_mode"].as<const char*>());
         if (m == "null" || m.length() == 0) enrollMode = "none";
         else enrollMode = m;
       } else {
         enrollMode = "none";
       }
-      if (doc.containsKey("last_scanned")) {
-        String ls = String((const char*)doc["last_scanned"]);
+      if (doc["last_scanned"].is<const char*>()) {
+        String ls = String(doc["last_scanned"].as<const char*>());
         if (ls.length()) lastUID = ls;
       }
     }

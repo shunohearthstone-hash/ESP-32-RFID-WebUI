@@ -12,7 +12,7 @@ from pybloom_live import ScalableBloomFilter
 DB_PATH = "cards.db"
 BLOOM_PATH = "bloom.bin"
 
-app = Flask(__name__, template_folder="templates")
+app = Flask(__name__, template_folder=".")
 CORS(app)
 
 # ---------- Global State ----------
@@ -39,8 +39,16 @@ def init_db():
     """)
     db.commit()
 
-@app.before_first_request
-def startup(): init_db()
+# Database will be initialized on first request
+def ensure_db_initialized():
+    """Initialize database if not already done"""
+    if not hasattr(g, '_db_initialized'):
+        init_db()
+        g._db_initialized = True
+
+@app.before_request
+def before_request():
+    ensure_db_initialized()
 
 @app.teardown_appcontext
 def close_db(exc):
@@ -174,5 +182,4 @@ def dashboard():
     return render_template("dashboard.html")
 
 if __name__ == "__main__":
-    init_db()
     app.run(host="0.0.0.0", port=5000, debug=True)
