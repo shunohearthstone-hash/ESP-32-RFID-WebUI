@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>RFID Access Dashboard</title>
+  <style>
+    body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 1em; }
+    table { border-collapse: collapse; width: 100%; margin-top: 1em; }
+    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
+    button { margin: 4px; padding: 4px 10px; }
+    #status { margin: 1em 0; }
+  </style>
+</head>
+<body>
+  <h2>RFID Access Control Dashboard</h2>
+
+  <div id="status">
+    <b>Last scanned:</b> <span id="last">none</span><br>
+    <b>Enroll mode:</b> <span id="mode">none</span><br>
+    <button onclick="setEnroll('grant')">Grant next card</button>
+    <button onclick="setEnroll('revoke')">Revoke next card</button>
+    <button onclick="setEnroll(null)">Cancel enroll</button>
+  </div>
+
+  <form id="addForm">
+    <input id="uid" placeholder="Enter UID" required>
+    <label><input type="checkbox" id="auth" checked> Authorized</label>
+    <button type="submit">Add / Update</button>
+  </form>
+
+  <table id="tbl">
+    <thead><tr><th>UID</th><th>Authorized</th><th>Added</th><th>Actions</th></tr></thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    const API = "/api/cards";
+
+    async function loadCards() {
+      const res = await fetch(API);
+      const data = await res.json();
+      const body = document.querySelector("#tbl tbody");
+      body.innerHTML = "";
+      data.forEach(c => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${c.uid}</td>
+          <td>${c.authorized ? "✅" : "❌"}</td>
+          <td>${new Date(c.added_at*1000).toLocaleString()}</td>
+          <td>
+            <button onclick="toggleAuth('${c.uid}', ${c.authorized})">Toggle</button>
+            <button onclick="del('${c.uid}')">Delete</button>
+          </td>`;
+        body.appendChild(tr);
+      });
+    }
+
+    async function toggleAuth(uid, current) {
+      await fetch(API + "/" + uid, {
+        method: "PATCH",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({authorized:!current})
+      });
+      loadCards();
+    }
+
+    async function del(uid) {
+      if (!confirm("Delete " + uid + "?")) return;
+      await fetch(API + "/" + uid, {method:"DELETE"});
+      loadCards();
+    }
+
+    document.getElementById("addForm").onsubmit = async e => {
+      e.preventDefault();
+      const uid = document.getElementById("uid").value.trim();
+      const auth = document.getElementById("auth").checked;
+      await fetch(API, {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({uid, authorized:auth})
+      });
+      document.getElementById("uid").value = "";
+      loadCards();
+    }
+
+    async function setEnroll(mode) {
+      await fetch("/api/enroll", {
+        method: "POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({mode})
+      });
+      updateStatus();
+    }
+
+    async function updateStatus() {
+      const res = await fetch("/api/status");
+      const s = await res.json();
+      document.getElementById("last").innerText = s.last_scanned || "none";
+      document.getElementById("mode").innerText = s.enroll_mode || "none";
+    }
+
+    setInterval(updateStatus, 1000);
+    loadCards();
+  </script>
+</body>
+</html>
