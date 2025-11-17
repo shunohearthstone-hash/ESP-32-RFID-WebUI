@@ -7,7 +7,7 @@ except Exception:
     # If flask_cors isn't available, provide a no-op CORS to keep the app working.
     def CORS(app, *args, **kwargs):
         return None
-from pybloom_live import ScalableBloomFilter
+#from pybloom_live import ScalableBloomFilter
 
 DB_PATH = "cards.db"
 BLOOM_PATH = "bloom.bin"
@@ -34,14 +34,20 @@ def init_db():
             uid TEXT PRIMARY KEY,
             authorized INTEGER DEFAULT 1,
             added_at INTEGER,
-            deleted_at INTEGER DEFAULT NULL
+            deleted_at INTEGER DEFAULT NULL,
+            card_id INTEGER UNIQUE
         );
     """)
+    db.execute("""
+        CREATE TABLE IF NOT EXISTS counter (
+            name TEXT PRIMARY KEY,
+            value INTEGER
+        );
+    """)
+    db.execute("INSERT OR IGNORE INTO counter(name, value) VALUES('next_card_id', 1)")
     db.commit()
 
-# Database will be initialized on first request
 def ensure_db_initialized():
-    """Initialize database if not already done"""
     if not hasattr(g, '_db_initialized'):
         init_db()
         g._db_initialized = True
@@ -55,27 +61,41 @@ def close_db(exc):
     db = getattr(g, "_db", None)
     if db: db.close()
 
-# ---------- BLOOM FILTER ----------
-def build_bloom():
+    
+    # ----------  Tiny sync packet for ESP32 ----------
+@app.route("/api/sync", methods=["GET"])
+def get_sync_packet():
     db = get_db()
-    uids = [r[0] for r in db.execute("SELECT uid FROM cards WHERE authorized=1 AND deleted_at IS NULL")]
-    bf = ScalableBloomFilter(mode=ScalableBloomFilter.SMALL_SET_GROWTH)
-    for u in uids:
-        bf.add(u)
-    with open(BLOOM_PATH, "wb") as f:
-        f.write(bf.bitarray.tobytes())
+    # Get max card_id
+    row = db.execute("SELECT COALESCE(MAX(card_id), 0) FROM cards WHERE card_id IS NOT NULL").fetchone()
+    max_id = row[0]
 
-@app.route("/api/bloom", methods=["GET"])
-def get_bloom():
-    if not os.path.exists(BLOOM_PATH):
-        build_bloom()
-    return send_file(BLOOM_PATH, mimetype="application/octet-stream")
+    # Build compact bit array
+    bits = bytearray((max_id + 7) // 8)
+    cur = db.execute("SELECT card_id FROM cards WHERE authorized=1 AND deleted_at IS NULL AND card_id IS NOT NULL")
+    for row in cur:
+        idx = row[0]
+        if idx >= 0:
+            bits[idx // 8] |= (1 << (idx % 8))
 
+    return jsonify({
+        "max_id": max_id,
+        "bits": bits.hex()       # tiny hex string, e.g. "ff03" for first 11 cards
+    })
+
+#---- Helpers ----
+def assign_card_id(uid):
+    db = get_db()
+    # Get next ID and increment atomically
+    db.execute("UPDATE counter SET value = value + 1 WHERE name = 'next_card_id'")
+    next_id = db.execute("SELECT value FROM counter WHERE name = 'next_card_id'").fetchone()[0]
+    db.execute("UPDATE cards SET card_id = ? WHERE uid = ? AND (card_id IS NULL OR card_id = 0)", (next_id - 1, uid))
+    db.commit()
 # ---------- API ----------
 @app.route("/api/cards", methods=["GET"])
 def list_cards():
     db = get_db()
-    rows = [dict(r) for r in db.execute("SELECT uid, authorized, added_at FROM cards WHERE deleted_at IS NULL")]
+    rows = [dict(r) for r in db.execute("SELECT uid, authorized, added_at, card_id FROM cards WHERE deleted_at IS NULL")]
     return jsonify(rows)
 
 @app.route("/api/cards", methods=["POST"])
@@ -95,8 +115,9 @@ def add_card():
             deleted_at=NULL,
             added_at=excluded.added_at;
     """,(uid,auth,now))
+    assign_card_id(uid)
     db.commit()
-    build_bloom()
+    
     return jsonify({"ok":True,"uid":uid}),201
 
 @app.route("/api/cards/<uid>", methods=["DELETE"])
@@ -104,7 +125,7 @@ def delete_card(uid):
     db = get_db()
     db.execute("UPDATE cards SET deleted_at=? WHERE uid=?", (int(time.time()), uid))
     db.commit()
-    build_bloom()
+   
     return jsonify({"ok":True,"uid":uid})
 
 @app.route("/api/cards/<uid>", methods=["PATCH"])
@@ -116,7 +137,7 @@ def update_card(uid):
     db = get_db()
     db.execute("UPDATE cards SET authorized=? WHERE uid=?", (auth, uid))
     db.commit()
-    build_bloom()
+   
     return jsonify({"ok":True,"uid":uid,"authorized":auth})
 
 @app.route("/api/cards/<uid>", methods=["GET"])
@@ -125,7 +146,11 @@ def get_card(uid):
     r = db.execute("SELECT * FROM cards WHERE uid=?", (uid,)).fetchone()
     if not r or r["deleted_at"]:
         return jsonify({"exists":False}),404
-    return jsonify({"exists":True,"authorized":bool(r["authorized"])})
+    return jsonify({
+        "exists":True,
+        "authorized":bool(r["authorized"]),
+        "card_id":r["card_id"] if r["card_id"] is not None else -1
+    })
 
 # ---------- ENROLLMENT FEATURE ----------
 
@@ -151,8 +176,9 @@ def last_scan():
                 authorized=excluded.authorized,
                 deleted_at=NULL;
         """,(uid,auth,now))
+        assign_card_id(uid)  # Ensure card_id is assigned
         db.commit()
-        build_bloom()
+        
         enroll_mode = None  # reset after one use
         return jsonify({"ok":True,"enrolled":True,"mode":auth,"uid":uid})
     return jsonify({"ok":True,"uid":uid,"enrolled":False})
