@@ -17,21 +17,20 @@ JsonDocument postLastScan(const String &uid);
 bool checkAuthorized(const String &uid);
 void updateEnrollStatus();
 
-// ----------------- CONFIG -----------------
-const char* SSID = "Rasmus 5 GHz";
-const char* PASS = "Frt56789!";
-const char* SERVER_BASE = "http://192.168.1.240:5000"; // change to your Flask server IP
-
 // RFID (SPI) pins
 #define RST_PIN    17
 #define SS_PIN     5
 MFRC522 rfid(SS_PIN, RST_PIN);
 
-// u8x8 (I2C text-only) constructor
-// Use a supported driver; if your display is SSD1315 try the SSD1306-compatible driver below,
-// or switch to a U8G2_SSD1315_128X64_NONAME_1_HW_I2C constructor if your library provides it.
-// U8X8_R0 rotation, reset pin none (U8X8_PIN_NONE)
-U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8( /* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE);
+
+// ----------------- CONFIG -----------------
+const char* SSID = "Rasmus 2.4 GHz";
+const char* PASS = "Frt56789!";
+const char* SERVER_BASE = "http://192.168.1.240:5000"; // change to your Flask server IP
+
+
+// u8x8 (Hardware I2C text-only) constructor
+U8X8_SSD1315_128X64_NONAME_HW_I2C u8x8(/* reset=*/ U8X8_PIN_NONE);
 
 
 // small helpers
@@ -42,10 +41,30 @@ unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
 
+void drawheader() {
+  u8x8.clear();
+  u8x8.setContrast(255);
+  u8x8.drawString(0,0,"RFID Access");
+}
+
 // ----------------- SETUP -----------------
 void setup() {
   Serial.begin(115200);
   delay(100);
+
+  WiFi.mode(WIFI_STA);
+int n = WiFi.scanNetworks(/*async=*/false, /*hidden=*/true);
+Serial.printf("Found %d networks:\n", n);
+for (int i = 0; i < n; i++) {
+  Serial.printf("  %2d: %-32s ch:%2d rssi:%3d %s\n",
+    i,
+    WiFi.SSID(i).c_str(),
+    WiFi.channel(i),
+    WiFi.RSSI(i),
+    (WiFi.encryptionType(i) == WIFI_AUTH_OPEN) ? "open" : "secure");
+}
+WiFi.scanDelete();
+// proceed to WiFi.begin(SSID, PASS) after this
 
   // init display
   Wire.begin(21, 22); // SDA=21, SCL=22
@@ -80,59 +99,59 @@ void setup() {
 }
 
 // ----------------- MAIN LOOP -----------------
-void loop() {
-  // handle RFID scans
-  if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-    String uid = getUidString();
-    Serial.println("Scanned: " + uid);
-    lastUID = uid;
+    void loop() {
+      // handle RFID scans
+      if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
+        String uid = getUidString();
+        Serial.println("Scanned: " + uid);
+        lastUID = uid;
 
-    // report to server (this will perform enroll action if server is in enroll mode)
-    JsonDocument resp = postLastScan(uid);
+        // report to server (this will perform enroll action if server is in enroll mode)
+        JsonDocument resp = postLastScan(uid);
 
-    if (!resp.isNull()) {
-      // server returns {"ok":true,"enrolled":true/false,...} per our API
-      bool enrolled = resp["enrolled"] | false;
-      if (enrolled) {
-        // server applied enroll action (grant/revoke) already
-        // show quick feedback: authorized if later GET returns true
-        delay(150); // let server settle & rebuild bloom (server does this)
-        lastAuthorized = checkAuthorized(uid);
-      } else {
-        // not enrolled; just check current authorized status
-        lastAuthorized = checkAuthorized(uid);
+        if (!resp.isNull()) {
+          // server returns {"ok":true,"enrolled":true/false,...} per our API
+          bool enrolled = resp["enrolled"] | false;
+          if (enrolled) {
+            // server applied enroll action (grant/revoke) already
+            // show quick feedback: authorized if later GET returns true
+            delay(150); // let server settle & rebuild bloom (server does this)
+            lastAuthorized = checkAuthorized(uid);
+          } else {
+            // not enrolled; just check current authorized status
+            lastAuthorized = checkAuthorized(uid);
+          }
+          // update enroll mode too by querying /api/status
+          updateEnrollStatus();
+        } else {
+          // fallback: just check locally via GET
+          lastAuthorized = checkAuthorized(uid);
+          updateEnrollStatus();
+        }
+
+        // update display & small delay
+        updateDisplay();
+        rfid.PICC_HaltA();
+        rfid.PCD_StopCrypto1();
+        delay(400); // debounce
       }
-      // update enroll mode too by querying /api/status
-      updateEnrollStatus();
-    } else {
-      // fallback: just check locally via GET
-      lastAuthorized = checkAuthorized(uid);
-      updateEnrollStatus();
-    }
 
-    // update display & small delay
-    updateDisplay();
-    rfid.PICC_HaltA();
-    rfid.PCD_StopCrypto1();
-    delay(400); // debounce
-  }
+      // periodic status refresh every 5s
+      if (millis() - lastDisplayUpdate > 5000) {
+        updateEnrollStatus(); // refresh enroll state
+        updateDisplay();
+        lastDisplayUpdate = millis();
+      }
 
-  // periodic status refresh every 5s
-  if (millis() - lastDisplayUpdate > 5000) {
-    updateEnrollStatus(); // refresh enroll state
-    updateDisplay();
-    lastDisplayUpdate = millis();
-  }
-
-  // handle enroll blink (visual feedback)
-  if (enrollMode == "grant" || enrollMode == "revoke") {
-    if (millis() - enrollBlinkMillis > 500) {
-      enrollBlinkState = !enrollBlinkState;
-      enrollBlinkMillis = millis();
-      // redraw small indicator
-      drawEnrollIndicator(enrollBlinkState);
-    }
-  }
+      // handle enroll blink (visual feedback)
+      if (enrollMode == "grant" || enrollMode == "revoke") {
+        if (millis() - enrollBlinkMillis > 500) {
+          enrollBlinkState = !enrollBlinkState;
+          enrollBlinkMillis = millis();
+          // redraw small indicator
+          drawEnrollIndicator(enrollBlinkState);
+        }
+      }
 }
 
 // ----------------- HELPERS -----------------
@@ -148,21 +167,17 @@ String getUidString() {
 }
 
 void displayInit() {
-  u8x8.clear();
-  u8x8.setContrast(255);
-  u8x8.drawString(0,0,"RFID Access");
+  drawheader();
   u8x8.drawString(0,2,"Init...");
 }
 
 void displayStatus(const char* s) {
-  u8x8.clear();
-  u8x8.drawString(0,0,"RFID Access");
+  drawheader();
   u8x8.drawString(0,2,s);
 }
 
 void updateDisplay() {
-  u8x8.clear();
-  u8x8.drawString(0,0,"RFID Access");
+  drawheader();
   // line 1: UID (truncate to 16 chars if necessary)
   String uidLine = "UID:";
   uidLine += lastUID;
@@ -173,13 +188,13 @@ void updateDisplay() {
   String a = lastAuthorized ? "YES" : "NO ";
   u8x8.drawString(0,3, ("Auth:" + a).c_str());
 
-  // line 3: enroll mode
+ /*/ line 3: enroll mode
   String em = enrollMode;
   if (em.length() == 0) em = "none";
-  u8x8.drawString(0,4, ("Enroll:" + em).c_str());
+  u8x8.drawString(0,4, ("Enroll:" + em).c_str());*/
 
   // small helper status on last line
-  u8x8.drawString(0,6, "Press 'Grant' on UI");
+  //u8x8.drawString(0,6, "Press 'Grant' on UI");
   // draw indicator if in enroll mode
   drawEnrollIndicator(true);
 }
