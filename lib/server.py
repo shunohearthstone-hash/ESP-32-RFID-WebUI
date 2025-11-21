@@ -1,6 +1,8 @@
 # server.py
 from flask import Flask, request, jsonify, g, render_template, send_file
 import sqlite3, time, io, os
+import struct
+import re
 try:
     from flask_cors import CORS
 except Exception:
@@ -31,11 +33,12 @@ def init_db():
     db = get_db()
     db.execute("""
         CREATE TABLE IF NOT EXISTS cards(
-            uid TEXT PRIMARY KEY,
+            uid TEXT PRIMARY KEY CHECK(length(uid) >= 8 AND length(uid) <= 20),
             authorized INTEGER DEFAULT 1,
             added_at INTEGER,
             deleted_at INTEGER DEFAULT NULL,
-            card_id INTEGER UNIQUE
+            card_id INTEGER UNIQUE,
+            uid_hash TEXT
         );
     """)
     db.execute("""
@@ -46,6 +49,16 @@ def init_db():
     """)
     db.execute("INSERT OR IGNORE INTO counter(name, value) VALUES('next_card_id', 1)")
     db.commit()
+
+def compute_uid_hash(uid):
+    """Compute FNV-1a 64-bit hash matching ESP32 implementation."""
+    normalized = uid.strip().upper()
+    hash_val = 0xcbf29ce484222325  # FNV offset basis
+    prime = 0x100000001b3          # FNV prime
+    for char in normalized:
+        hash_val ^= ord(char)
+        hash_val = (hash_val * prime) & 0xFFFFFFFFFFFFFFFF  # Keep 64-bit
+    return format(hash_val, '016X')  # Return as 16-char hex string
 
 def ensure_db_initialized():
     if not hasattr(g, '_db_initialized'):
@@ -95,7 +108,7 @@ def assign_card_id(uid):
 @app.route("/api/cards", methods=["GET"])
 def list_cards():
     db = get_db()
-    rows = [dict(r) for r in db.execute("SELECT uid, authorized, added_at, card_id FROM cards WHERE deleted_at IS NULL")]
+    rows = [dict(r) for r in db.execute("SELECT uid, authorized, added_at, card_id, uid_hash FROM cards WHERE deleted_at IS NULL")]
     return jsonify(rows)
 
 @app.route("/api/cards", methods=["POST"])
@@ -106,19 +119,24 @@ def add_card():
     now = int(time.time())
     if not uid:
         return jsonify({"error": "uid required"}), 400
+    valid, error = validate_uid(uid)
+    if not valid:
+        return jsonify({"error": error}), 400
+    uid_hash = compute_uid_hash(uid)
     db = get_db()
     db.execute("""
-        INSERT INTO cards(uid,authorized,added_at,deleted_at)
-        VALUES(?,?,?,NULL)
+        INSERT INTO cards(uid,authorized,added_at,deleted_at,uid_hash)
+        VALUES(?,?,?,NULL,?)
         ON CONFLICT(uid) DO UPDATE SET
             authorized=excluded.authorized,
             deleted_at=NULL,
-            added_at=excluded.added_at;
-    """,(uid,auth,now))
+            added_at=excluded.added_at,
+            uid_hash=excluded.uid_hash;
+    """,(uid,auth,now,uid_hash))
     assign_card_id(uid)
     db.commit()
     
-    return jsonify({"ok":True,"uid":uid}),201
+    return jsonify({"ok":True,"uid":uid,"hash":uid_hash}),201
 
 @app.route("/api/cards/<uid>", methods=["DELETE"])
 def delete_card(uid):
@@ -149,7 +167,8 @@ def get_card(uid):
     return jsonify({
         "exists":True,
         "authorized":bool(r["authorized"]),
-        "card_id":r["card_id"] if r["card_id"] is not None else -1
+        "card_id":r["card_id"] if r["card_id"] is not None else -1,
+        "uid_hash":r["uid_hash"]
     })
 
 # ---------- ENROLLMENT FEATURE ----------
@@ -163,6 +182,7 @@ def last_scan():
     if not uid:
         return jsonify({"error": "uid required"}), 400
     last_scanned = uid
+    uid_hash = compute_uid_hash(uid)
 
     # If we are in enroll mode, act now:
     if enroll_mode in ("grant", "revoke"):
@@ -170,18 +190,19 @@ def last_scan():
         auth = 1 if enroll_mode == "grant" else 0
         now = int(time.time())
         db.execute("""
-            INSERT INTO cards(uid,authorized,added_at,deleted_at)
-            VALUES(?,?,?,NULL)
+            INSERT INTO cards(uid,authorized,added_at,deleted_at,uid_hash)
+            VALUES(?,?,?,NULL,?)
             ON CONFLICT(uid) DO UPDATE SET
                 authorized=excluded.authorized,
-                deleted_at=NULL;
-        """,(uid,auth,now))
+                deleted_at=NULL,
+                uid_hash=excluded.uid_hash;
+        """,(uid,auth,now,uid_hash))
         assign_card_id(uid)  # Ensure card_id is assigned
         db.commit()
         
         enroll_mode = None  # reset after one use
-        return jsonify({"ok":True,"enrolled":True,"mode":auth,"uid":uid})
-    return jsonify({"ok":True,"uid":uid,"enrolled":False})
+        return jsonify({"ok":True,"enrolled":True,"mode":auth,"uid":uid,"hash":uid_hash})
+    return jsonify({"ok":True,"uid":uid,"enrolled":False,"hash":uid_hash})
 
 @app.route("/api/enroll", methods=["POST"])
 def set_enroll_mode():
@@ -206,6 +227,17 @@ def status():
 @app.route("/")
 def dashboard():
     return render_template("dashboard.html")
+
+# In server.py, add validation helper:
+def validate_uid(uid):
+    """Validate UID format: 8-20 uppercase hex chars."""
+    if not uid or not isinstance(uid, str):
+        return False, "UID required"
+    if len(uid) < 8 or len(uid) > 20:
+        return False, "UID must be 8-20 characters"
+    if not re.match(r'^[0-9A-F]+$', uid.upper()):
+        return False, "UID must be hexadecimal"
+    return True, None
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000, debug=True)

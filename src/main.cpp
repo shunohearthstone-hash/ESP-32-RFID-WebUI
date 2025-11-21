@@ -72,15 +72,20 @@ AuthSync* authSync = nullptr;
 String lastUID = "NONE";
 String enrollMode = "none";
 bool lastAuthorized = false;
+uint64_t lastHash = 0;  // Last computed hash for display
+bool serverReachable = false;  // Track server/database reachability
 unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
+unsigned long lastServerCheck = 0;  // Last server status check time
 
 // Display state tracking (to avoid unnecessary redraws)
 String displayedUID = "";
 bool displayedAuth = false;
+uint64_t displayedHash = 0;
 String displayedEnrollMode = "";
 bool displayedEnrollBlink = false;
+bool displayedServerReachable = false;
 
 JsonDocument postLastScan(const String &uid);
 String getUidString();
@@ -88,6 +93,7 @@ void updateEnrollStatus();
 void updateDisplay();
 void drawheader();
 void drawEnrollIndicator(bool on);
+void listLittleFSFiles();  // helper to enumerate files on LittleFS (debug/verify)
 
 // LittleFS helpers (implemented at the bottom of this file)
 // - saveConfigToLittleFS: write a JSON object to /config.json
@@ -106,23 +112,60 @@ void setup() {
   u8x8.begin();
   u8x8.setFont(u8x8_font_chroma48medium8_r);
   drawheader();
-  u8x8.drawString(0, 2, "Init...");
+  u8x8.drawString(0, 2, "FS Init...");
 
   SPI.begin();
   rfid.PCD_Init();
 
-  // Mount LittleFS and attempt to load config.json (optional)
+  // Ensure FS is mounted before trying to load config
   if (LittleFS.begin()) {
     if (loadConfigFromLittleFS()) {
       Serial.println("Config loaded from LittleFS");
-    } else {
-      Serial.println("No config.json found on LittleFS, using defaults");
+      Serial.println("SSID: " + SSID);
+      Serial.println("PASS: " + PASS);
+      Serial.println("SERVER_BASE: " + SERVER_BASE);
+      u8x8.drawString(0, 2, "FS OK");
+    } /* -------------  If failing to flash config.json, run auto-provisioning    -------------
+                        Replace  this placeholder with your desired network details
+                        to have the device write a default config.json on first boot.
+         ------------- ------------- ------------- ------------- ------------- -------------
+    else {
+      Serial.println("config.json missing -> auto-provisioning defaults");
+      // One-time provisioning: write a default config, then reload.
+      /*if (saveConfigToLittleFS("SSID", "PASS", "http://SERVER_BASE")) {
+        if (loadConfigFromLittleFS()) {
+          Serial.println("Provisioned default config.json");
+          Serial.println("SSID: " + SSID);
+          Serial.println("PASS: " + PASS);
+          Serial.println("SERVER_BASE: " + SERVER_BASE);
+          u8x8.drawString(0, 2, "PROVISION");
+        } else {
+          Serial.println("Provision write ok but reload failed");
+          u8x8.drawString(0, 2, "PROV ERR");
+        }
+      } else {
+        Serial.println("Failed to auto-provision config.json");
+        u8x8.drawString(0, 2, "PROV FAIL");
+      }
     }
+    listLittleFSFiles();
   } else {
-    Serial.println("LittleFS mount failed");
+    Serial.println("LittleFS mount failed, formatting...");
+    LittleFS.format();*/
+    if (LittleFS.begin()) {
+      Serial.println("LittleFS formatted and remounted");
+      if (loadConfigFromLittleFS()) {
+        Serial.println("Config loaded from LittleFS");
+        listLittleFSFiles();
+      }
+    } else {
+      Serial.println("LittleFS format/remount failed");
+      u8x8.drawString(0, 2, "FS FAIL");
+    }
   }
-
-  // Create AuthSync now that SERVER_BASE is known (only if configured)
+  vTaskDelay(100 / portTICK_PERIOD_MS);  // Give some time for LittleFS to stabilize
+    
+    // Create AuthSync now that SERVER_BASE is known (only if configured)
   if (authSync) { delete authSync; authSync = nullptr; }
   if (SERVER_BASE.length() > 0) {
     authSync = new AuthSync(SERVER_BASE);
@@ -138,10 +181,19 @@ void setup() {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
-    u8x8.drawString(0, 2, "WiFi OK");
-    if (authSync) authSync->begin();  // Initial sync
+    if (authSync && authSync->begin()) {  // Initial sync attempt
+      u8x8.drawString(0, 2, "DB OK");
+      serverReachable = true;
+      displayedServerReachable = true;
+    } else {
+      u8x8.drawString(0, 2, "DB FAIL");
+      serverReachable = false;
+      displayedServerReachable = false;
+    }
   } else {
     u8x8.drawString(0, 2, "WiFi FAIL");
+    serverReachable = false;
+    displayedServerReachable = false;
   }
   delay(1000);
   
@@ -149,6 +201,30 @@ void setup() {
 
 // ----------------- MAIN LOOP -----------------
 void loop() {
+  
+  // Periodic server reachability check (every 5 seconds)
+  if (millis() - lastServerCheck > 5000) {
+    bool nowReachable = false;
+    if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
+      // Quick check via status endpoint (lightweight)
+      HTTPClient http;
+      http.setTimeout(2000);
+      http.begin(SERVER_BASE + "/api/status");
+      int code = http.GET();
+      http.end();
+      nowReachable = (code == 200);
+    }
+    if (nowReachable != serverReachable) {
+      serverReachable = nowReachable;
+      if (serverReachable) {
+        Serial.println("[DB] Server reachable");
+      } else {
+        Serial.println("[DB] Server unreachable - falling back to offline mode");
+      }
+      updateDisplay();  // Force display update on status change
+    }
+    lastServerCheck = millis();
+  }
   
   static unsigned long lastEnrollCheck = 0;
   if (millis() - lastEnrollCheck > 500) {  // Refresh every 500ms
@@ -160,6 +236,18 @@ void loop() {
     String uid = getUidString();
     Serial.println("Scanned: " + uid);
     lastUID = uid;
+
+    // Compute hash for display (same method as AuthSync)
+    String normalized = uid;
+    normalized.trim();
+    normalized.toUpperCase();
+    uint64_t hash = 0xcbf29ce484222325ULL;
+    const uint64_t prime = 0x100000001b3ULL;
+    for (size_t i = 0; i < normalized.length(); i++) {
+      hash ^= (uint8_t)normalized[i];
+      hash *= prime;
+    }
+    lastHash = hash;
 
     JsonDocument resp = postLastScan(uid);
     bool enrolled = resp["enrolled"] | false;
@@ -211,6 +299,16 @@ void drawheader() {
 void updateDisplay() {
   drawheader();  // Only draws once
   
+  // Update DB status if changed
+  if (serverReachable != displayedServerReachable) {
+    if (serverReachable) {
+      u8x8.drawString(0, 2, "DB OK        ");
+    } else {
+      u8x8.drawString(0, 2, "DB LOST      ");
+    }
+    displayedServerReachable = serverReachable;
+  }
+  
   // Only update UID if changed
   if (lastUID != displayedUID) {
     String line = "UID:" + lastUID;
@@ -225,6 +323,14 @@ void updateDisplay() {
   if (lastAuthorized != displayedAuth) {
     u8x8.drawString(0, 3, (String("Auth:") + (lastAuthorized ? "YES" : "NO ")).c_str());
     displayedAuth = lastAuthorized;
+  }
+  
+  // Update hash display (last 8 hex digits on bottom row)
+  if (lastHash != displayedHash) {
+    char hashStr[17];
+    snprintf(hashStr, sizeof(hashStr), "H:%08X", (uint32_t)(lastHash & 0xFFFFFFFF));
+    u8x8.drawString(0, 7, hashStr);
+    displayedHash = lastHash;
   }
   
   // Enroll indicator handled separately in drawEnrollIndicator
@@ -292,34 +398,29 @@ void updateEnrollStatus() {
 }
 
 // ---------------- LittleFS config helpers ----------------
+String readConfigJsonString() {
+  // assume LittleFS.begin() was already called in setup()
+  File f = LittleFS.open("/config.json", "r");
+  if (!f) return String();
+  size_t sz = f.size();
+  String contents;
+  contents.reserve(sz + 1);
+  while (f.available()) contents += (char)f.read();
+  f.close();
+  return contents;
+}
+
 bool saveConfigToLittleFS(const String &ssid, const String &pass, const String &server_base) {
-  if (!LittleFS.begin()) return false;
+  // assume LittleFS.begin() was already called in setup()
   DynamicJsonDocument doc(512);
   doc["ssid"] = ssid;
   doc["password"] = pass;
   doc["server_base"] = server_base;
   File f = LittleFS.open("/config.json", "w");
   if (!f) return false;
-  if (serializeJson(doc, f) == 0) {
-    f.close();
-    return false;
-  }
+  if (serializeJson(doc, f) == 0) { f.close(); return false; }
   f.close();
   return true;
-}
-
-String readConfigJsonString() {
-  if (!LittleFS.begin()) return String();
-  File f = LittleFS.open("/config.json", "r");
-  if (!f) return String();
-  size_t sz = f.size();
-  String contents;
-  contents.reserve(sz + 1);
-  while (f.available()) {
-    contents += (char)f.read();
-  }
-  f.close();
-  return contents;
 }
 
 bool loadConfigFromLittleFS() {
@@ -332,4 +433,16 @@ bool loadConfigFromLittleFS() {
   PASS = String(doc["password"] | PASS.c_str());
   SERVER_BASE = String(doc["server_base"] | SERVER_BASE.c_str());
   return true;
+}
+
+void listLittleFSFiles() {
+  File root = LittleFS.open("/");
+  if (!root) { Serial.println("LittleFS root open failed"); return; }
+  Serial.println("LittleFS contents:");
+  File f = root.openNextFile();
+  if (!f) Serial.println("  (empty)");
+  while (f) {
+    Serial.printf("  %s (%u bytes)\n", f.name(), (unsigned)f.size());
+    f = root.openNextFile();
+  }
 }

@@ -1,7 +1,57 @@
+/* Behaviour summary:
+ AuthSync maintains two authorization layers:
+  1) Online: If WiFi connected and server_base set, it probes /api/status (cached 5s) then
+     queries /api/cards/<uid>. Successful responses update sorted allow/deny hash vectors.
+  2) Offline fallback: If server unreachable or lookup fails, it binary_searches cached
+     denyHashes_ (deny wins) then allowHashes_. Hashes are 64-bit FNV-1a of normalized UID.
+
+ Bitset (authorized_bits) fetched via /api/sync stores per-card_id bits (heap malloc, freed/replaced each sync).
+ Hash caches and counts persist in NVS (Preferences) for offline reuse across reboots.
+
+ All heap allocations guarded; failure leaves structures null and logic safely returns false.
+ Server reachability is throttled; no HTTP attempted when previously marked unreachable.
+ Prioritizes fresh server authorization when available,
+ with secondary binary search authorization offline. */
+
+ /* Server > Hash: if we have network connectivity,
+        ask the server first for card authorization.
+
+         /* Connected Example Flow:
+        Scan UID: "04A1B2C3"
+         ↓
+        Hash (FNV-1a 64-bit): 0x8F3A4B2C1D9E7F6A (logged)
+         ↓
+        WiFi OK && server_base set → probe (every 5s) /api/status
+         ↓ (status 200)
+        GET /api/cards/04A1B2C3 → { "exists": true, "card_id": 1234, "authorized": true }
+         ↓
+        addKnownAuth() → hash inserted into allowHashes_ (sorted), removed from deny if present
+         ↓
+        Return: AUTHORIZED (true)
+        (If GET fails or exists=false → fallback to offline hash search sequence)
+    ---   ---   ---   ---   ---   ---   ---   ---   ---   ---   
+        Offline Example Flow:
+        Card scanned: "04A1B2C3"
+         ↓
+        Hash: 0x8f3a4b2c1d9e7f6a
+         ↓
+        Binary search denyHashes_  → Not found
+         ↓
+        Binary search allowHashes_ → Found at index 42
+         ↓
+        Return: AUTHORIZED
+    
+   --------------------------------------------------------------------------*/
+
+
+
+
 #include "AuthSync.h"
 #include <WiFi.h>
 #include <limits>
-
+/*for each byte in input:
+    hash ^= byte        // XOR with current hash
+    hash *= prime       // Multiply by FNV prime*/
 // -------------------- hashing (FNV-1a 64-bit) --------------------
 static inline uint64_t fnv1a64(const uint8_t* data, size_t len) {
     uint64_t hash = 0xcbf29ce484222325ULL;      // FNV offset basis
@@ -103,9 +153,11 @@ bool AuthSync::update() {
 }
 
 bool AuthSync::isAuthorized(const String& uid) {
-    // Server-authoritative when online: if we have network connectivity,
-    // ask the server first and use its answer. This ensures immediate
-    // revocations and central policy take effect.
+    // Compute and log hash for debugging/offline cache tracking
+    uint64_t h = hashUid(uid);
+    Serial.printf("[AuthSync] UID: %s -> Hash: 0x%016llX\n", uid.c_str(), h);
+
+    
     if (WiFi.status() == WL_CONNECTED && server_base.length() > 0) {
         int card_id = -1;
         bool server_allowed = false;
@@ -117,23 +169,36 @@ bool AuthSync::isAuthorized(const String& uid) {
         // If server query failed or server reports unknown card, fall
         // through to local cached checks below.
     }
-
-    // Offline / fallback: check hashed caches (deny takes precedence)
-    uint64_t h = hashUid(uid);
+    
+    
     bool denied = std::binary_search(denyHashes_.begin(), denyHashes_.end(), h);
     if (denied) return false;
     bool allowed = std::binary_search(allowHashes_.begin(), allowHashes_.end(), h);
     if (allowed) return true;
 
-    // No info available locally and server either not reachable or didn't
-    // know the card — deny by default.
     return false;
 }
 
 bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &authorized) {
     card_id = -1;
     authorized = false;
-    if (WiFi.status() != WL_CONNECTED) return false;
+    // Guard: need WiFi and a configured server base
+    if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
+
+    // Periodic lightweight server status probe (cached) to avoid expensive lookups when server down
+    if (millis() - last_server_probe > 5000) {
+        last_server_probe = millis();
+        HTTPClient ping;
+        ping.setTimeout(2000);
+        ping.begin(server_base + "/api/status");
+        int sc = ping.GET();
+        ping.end();
+        server_last_ok = (sc == 200);
+        if (!server_last_ok) {
+            Serial.println("[AuthSync] Server status probe failed; using offline cache");
+        }
+    }
+    if (!server_last_ok) return false;  // fallback to offline caches
 
     HTTPClient http;
     http.setTimeout(5000);
@@ -158,7 +223,24 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
 }
 
 bool AuthSync::syncFromServer() {
-    if (WiFi.status() != WL_CONNECTED) return false;
+    if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
+    // Optional: reuse cached server_last_ok (force probe if stale so initial sync benefits)
+    if (millis() - last_server_probe > 5000) {
+        last_server_probe = millis();
+        HTTPClient ping;
+        ping.setTimeout(2000);
+        ping.begin(server_base + "/api/status");
+        int sc = ping.GET();
+        ping.end();
+        server_last_ok = (sc == 200);
+        if (!server_last_ok) {
+            Serial.println("[AuthSync] Sync aborted: server unreachable");
+            return false;
+        }
+    } else if (!server_last_ok) {
+        Serial.println("[AuthSync] Sync skipped: server previously unreachable");
+        return false;
+    }
 
     HTTPClient http;
     http.setTimeout(5000);  // 5 second timeout
@@ -375,3 +457,4 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
     if (authorized_bits) memset(authorized_bits, 0, nbytes);
 }
 #endif
+

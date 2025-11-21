@@ -34,6 +34,10 @@ private:
     unsigned long last_sync = 0;
     static const unsigned long SYNC_INTERVAL = 60000;  // 1 minute
 
+    // Lightweight server reachability caching to avoid hitting endpoint on every auth check
+    unsigned long last_server_probe = 0;      // millis of last /api/status probe
+    bool          server_last_ok    = false;  // result of last probe (HTTP 200)
+
     bool syncFromServer();
     int  getCardIdFromServer(const String& uid);
     // Query server for card existence and authorization. Returns true on
