@@ -3,7 +3,9 @@
 .vscode/c_cpp_properties.json
 .vscode/launch.json
 .vscode/ipch
-
+.history/
+cards.db
+.code-workspace
 # Python virtual environment
 lapenv/
 
