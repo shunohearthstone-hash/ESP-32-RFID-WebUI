@@ -3,25 +3,70 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
+#include <LittleFS.h>               // added: read config.json from LittleFS
 
 // Include AuthSync implementation directly
 #include "../src/AuthSync.h"
 #include "../src/AuthSync.cpp"
 
-// Test WiFi credentials (use your actual credentials)
-const char* TEST_SSID = "Rasmus 2.4 GHz";
-const char* TEST_PASS = "Frt56789!";
-const char* TEST_SERVER = "http://192.168.1.32:5000";
+// Test WiFi credentials (loaded from LittleFS /config.json at runtime)
+String TEST_SSID = "";
+String TEST_PASS = "";
+String TEST_SERVER = "";
+
+// Load network config from LittleFS /config.json
+static bool loadNetworkConfigFromLittleFS() {
+    if (!LittleFS.begin()) {
+        Serial.println("[CFG] LittleFS.mount FAILED");
+        return false;
+    }
+    if (!LittleFS.exists("/config.json")) {
+        Serial.println("[CFG] /config.json not found");
+        return false;
+    }
+    File f = LittleFS.open("/config.json", "r");
+    if (!f) {
+        Serial.println("[CFG] Failed to open /config.json");
+        return false;
+    }
+    size_t sz = f.size();
+    if (sz == 0) {
+        f.close();
+        Serial.println("[CFG] /config.json empty");
+        return false;
+    }
+    std::unique_ptr<char[]> buf(new char[sz + 1]);
+    f.readBytes(buf.get(), sz);
+    buf[sz] = '\0';
+    f.close();
+
+    StaticJsonDocument<512> doc;
+    DeserializationError err = deserializeJson(doc, buf.get());
+    if (err) {
+        Serial.print("[CFG] JSON parse failed: ");
+        Serial.println(err.c_str());
+        return false;
+    }
+    TEST_SSID = String(doc["ssid"] | "");
+    TEST_PASS = String(doc["password"] | "");
+    TEST_SERVER = String(doc["server_base"] | "");
+    Serial.printf("[CFG] Loaded ssid='%s' server='%s'\n", TEST_SSID.c_str(), TEST_SERVER.c_str());
+    return true;
+}
 
 void setUp(void) {
-    // Connect to WiFi before each test
-    if (WiFi.status() != WL_CONNECTED) {
-        WiFi.begin(TEST_SSID, TEST_PASS);
-        int timeout = 0;
-        while (WiFi.status() != WL_CONNECTED && timeout < 20) {
-            delay(500);
-            timeout++;
+    // Connect to WiFi before each test (if config present)
+    if (TEST_SSID.length() > 0) {
+        if (WiFi.status() != WL_CONNECTED) {
+            WiFi.begin(TEST_SSID.c_str(), TEST_PASS.c_str());
+            int timeout = 0;
+            while (WiFi.status() != WL_CONNECTED && timeout < 20) {
+                delay(500);
+                timeout++;
+            }
         }
+    } else {
+        Serial.println("[SETUP] No SSID configured -> network tests will skip");
     }
 }
 
@@ -185,20 +230,60 @@ void test_authsync_stress() {
 void setup() {
     Serial.begin(115200);
     delay(2000);
-    
+
+    // Load network config from LittleFS so tests use device config instead of hardcoded credentials
+    loadNetworkConfigFromLittleFS();
+
     Serial.println("\n\n========================================");
     Serial.println("AuthSync Heap Allocation Tests");
     Serial.println("========================================\n");
-    
+
     UNITY_BEGIN();
-    
+
     RUN_TEST(test_authsync_construction);
     RUN_TEST(test_authsync_sync_allocates);
     RUN_TEST(test_authsync_no_memory_leak);
     RUN_TEST(test_authsync_memory_size);
     RUN_TEST(test_authsync_authorization_check);
     RUN_TEST(test_authsync_stress);
-    
+
+#ifdef AUTH_TEST_HOOK
+    RUN_TEST(test_authsync_overflow_safety);
+#endif
+
+/*
+ * Overflow safety test (test-only).
+ *
+ * This test requires a test hook in `AuthSync` named
+ * `void TEST_setMaxCardId(size_t maxCardId)` which is intentionally
+ * excluded from production builds. To enable this test:
+ *  - Define `AUTH_TEST_HOOK` when building the test target.
+ *  - Add the TEST_setMaxCardId helper to `AuthSync` (see notes below).
+ *
+ * The test requests an absurdly large card id and verifies the
+ * resulting memory size reported by getMemoryUsed() is sensible
+ * (didn't wrap or underflow). If the test hook or macro isn't
+ * defined, the test is skipped.
+ */
+#ifdef AUTH_TEST_HOOK
+void test_authsync_overflow_safety() {
+    AuthSync auth(TEST_SERVER);
+
+    // Ask the implementation to pretend it has a huge max_card_id.
+    // The production code should cap allocations; the test hook
+    // allows us to simulate pathological server values without
+    // changing production behavior.
+    auth.TEST_setMaxCardId((size_t)-1);
+
+    size_t mem = auth.getMemoryUsed();
+    Serial.printf("\n[TEST] Overflow safety - memory used: %u bytes\n", mem);
+
+    // Sanity checks: non-zero and not absurdly large for test environment
+    TEST_ASSERT_GREATER_THAN(0u, mem);
+    TEST_ASSERT_LESS_THAN(50u * 1024 * 1024, mem); // <50MB
+}
+#endif
+
     UNITY_END();
 }
 

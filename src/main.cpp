@@ -6,6 +6,43 @@
 #include <U8x8lib.h>
 #include <ArduinoJson.h>
 #include "AuthSync.h"
+#include <LittleFS.h>
+
+/*
+  Runtime flow (high level)
+
+  1) Boot and setup()
+     - Initialize peripherals (display, SPI, RFID).
+     - Mount LittleFS and try to read `/config.json`.
+       * If present, parse and populate SSID/PASS/SERVER_BASE.
+       * If missing or parse fails, the strings remain empty and network/server
+         related features are skipped.
+     - Create `AuthSync` at runtime if a `server_base` was provided in config.
+     - Call `WiFi.begin(SSID, PASS)` using the loaded credentials (may fail if
+       no config provided).
+     - If Wi‑Fi connects, call `authSync->begin()` (initial server sync) when
+       `AuthSync` exists.
+
+  2) Main loop
+     - Periodically poll `/api/status` (only when Wi‑Fi connected and
+       SERVER_BASE is configured) to update enroll mode.
+     - On RFID scan:
+       * Post the scan to `/api/last_scan` (if configured/online).
+       * Ask `authSync` whether the UID is authorized. `AuthSync` first
+         consults its persistent hashed allow/deny caches (offline), then
+         falls back to a server lookup / bitset when online. Results are
+         learned and persisted for offline use.
+     - `AuthSync::update()` runs periodically to refresh the authorization
+       bitset from the server when online.
+
+  Notes:
+    - Configuration file format: JSON with keys `ssid`, `password`,
+      and `server_base`. Place it in the project `data/` folder and use
+      `pio run -t uploadfs` to write it to LittleFS as `/config.json`.
+    - The app is defensive: if no network/server config exists it still
+      runs and accepts scans, but server operations are skipped.
+
+*/
 
 // RFID pins
 #define RST_PIN 17
@@ -16,12 +53,20 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE);
 
 // ----------------- CONFIG -----------------
-const char* SSID = "Rasmus 2.4 GHz";
-const char* PASS = "Frt56789!";
-const char* SERVER_BASE = "http://192.168.1.32:5000";
+// Network and server configuration are moved out of the firmware and
+// loaded from LittleFS at boot. This prevents embedding credentials in
+// the binary and allows convenient updates by writing `/config.json` to
+// the filesystem (use PlatformIO `uploadfs` from the project `data/` dir).
+//
+// If the file is missing the strings remain empty and server-related
+// functionality is skipped.
+String SSID = "";
+String PASS = "";
+String SERVER_BASE = "";
 
-// Authorization sync
-AuthSync authSync(SERVER_BASE);
+// Authorization sync (created after config load) — allocated at runtime
+// so it can use the runtime `SERVER_BASE` value read from the JSON file.
+AuthSync* authSync = nullptr;
 
 // ----------------- State -----------------
 String lastUID = "NONE";
@@ -44,6 +89,14 @@ void updateDisplay();
 void drawheader();
 void drawEnrollIndicator(bool on);
 
+// LittleFS helpers (implemented at the bottom of this file)
+// - saveConfigToLittleFS: write a JSON object to /config.json
+// - readConfigJsonString: return the raw JSON string stored on LittleFS
+// - loadConfigFromLittleFS: parse the JSON and populate runtime variables
+bool saveConfigToLittleFS(const String &ssid, const String &pass, const String &server_base);
+String readConfigJsonString();
+bool loadConfigFromLittleFS();
+
 // ----------------- SETUP -----------------
 void setup() {
   Serial.begin(115200);
@@ -58,7 +111,26 @@ void setup() {
   SPI.begin();
   rfid.PCD_Init();
 
-  WiFi.begin(SSID, PASS);
+  // Mount LittleFS and attempt to load config.json (optional)
+  if (LittleFS.begin()) {
+    if (loadConfigFromLittleFS()) {
+      Serial.println("Config loaded from LittleFS");
+    } else {
+      Serial.println("No config.json found on LittleFS, using defaults");
+    }
+  } else {
+    Serial.println("LittleFS mount failed");
+  }
+
+  // Create AuthSync now that SERVER_BASE is known (only if configured)
+  if (authSync) { delete authSync; authSync = nullptr; }
+  if (SERVER_BASE.length() > 0) {
+    authSync = new AuthSync(SERVER_BASE);
+  } else {
+    Serial.println("SERVER_BASE not configured; skipping AuthSync creation");
+  }
+
+  WiFi.begin(SSID.c_str(), PASS.c_str());
   int tries = 0;
   while (WiFi.status() != WL_CONNECTED && tries < 80) {
     delay(500); Serial.print("."); tries++;
@@ -67,7 +139,7 @@ void setup() {
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
     u8x8.drawString(0, 2, "WiFi OK");
-    authSync.begin();  // Initial sync
+    if (authSync) authSync->begin();  // Initial sync
   } else {
     u8x8.drawString(0, 2, "WiFi FAIL");
   }
@@ -77,9 +149,9 @@ void setup() {
 
 // ----------------- MAIN LOOP -----------------
 void loop() {
-  // Check enroll status more frequently to show indicator quickly
+  
   static unsigned long lastEnrollCheck = 0;
-  if (millis() - lastEnrollCheck > 500) {  // Check every 500ms
+  if (millis() - lastEnrollCheck > 500) {  // Refresh every 500ms
     updateEnrollStatus();
     lastEnrollCheck = millis();
   }
@@ -92,7 +164,7 @@ void loop() {
     JsonDocument resp = postLastScan(uid);
     bool enrolled = resp["enrolled"] | false;
 
-    lastAuthorized = authSync.isAuthorized(uid);
+  lastAuthorized = authSync ? authSync->isAuthorized(uid) : false;
     updateEnrollStatus();  // Refresh after scan
     updateDisplay();
     rfid.PICC_HaltA();
@@ -100,7 +172,7 @@ void loop() {
     delay(400);
   }
 
-  authSync.update();  // Periodic sync check
+  if (authSync) authSync->update();  // Periodic sync check
 
   if (millis() - lastDisplayUpdate > 5000) {
     updateDisplay();
@@ -177,7 +249,11 @@ void drawEnrollIndicator(bool on) {
 }
 
 JsonDocument postLastScan(const String &uid) {
+  // Guard: if we're offline or server not configured, return empty doc.
+  // This avoids making invalid HTTP calls when no server_base is provided
+  // (e.g. on first-boot before provisioning /config.json).
   if (WiFi.status() != WL_CONNECTED) return JsonDocument();
+  if (SERVER_BASE.length() == 0) return JsonDocument();
   HTTPClient http;
   http.setTimeout(5000);
   http.begin(String(SERVER_BASE) + "/api/last_scan");
@@ -197,7 +273,10 @@ JsonDocument postLastScan(const String &uid) {
 }
 
 void updateEnrollStatus() {
+  // Skip poll if offline or no server configured. Keeps display consistent
+  // and avoids pointless HTTP requests when not provisioned.
   if (WiFi.status() != WL_CONNECTED) { enrollMode = "none"; return; }
+  if (SERVER_BASE.length() == 0) { enrollMode = "none"; return; }
   HTTPClient http;
   http.setTimeout(5000);
   http.begin(String(SERVER_BASE) + "/api/status");
@@ -210,4 +289,47 @@ void updateEnrollStatus() {
     enrollMode = (m && strlen(m)) ? String(m) : "none";
   }
   http.end();
+}
+
+// ---------------- LittleFS config helpers ----------------
+bool saveConfigToLittleFS(const String &ssid, const String &pass, const String &server_base) {
+  if (!LittleFS.begin()) return false;
+  DynamicJsonDocument doc(512);
+  doc["ssid"] = ssid;
+  doc["password"] = pass;
+  doc["server_base"] = server_base;
+  File f = LittleFS.open("/config.json", "w");
+  if (!f) return false;
+  if (serializeJson(doc, f) == 0) {
+    f.close();
+    return false;
+  }
+  f.close();
+  return true;
+}
+
+String readConfigJsonString() {
+  if (!LittleFS.begin()) return String();
+  File f = LittleFS.open("/config.json", "r");
+  if (!f) return String();
+  size_t sz = f.size();
+  String contents;
+  contents.reserve(sz + 1);
+  while (f.available()) {
+    contents += (char)f.read();
+  }
+  f.close();
+  return contents;
+}
+
+bool loadConfigFromLittleFS() {
+  String json = readConfigJsonString();
+  if (json.length() == 0) return false;
+  DynamicJsonDocument doc(1024);
+  DeserializationError err = deserializeJson(doc, json);
+  if (err) return false;
+  SSID = String(doc["ssid"] | SSID.c_str());
+  PASS = String(doc["password"] | PASS.c_str());
+  SERVER_BASE = String(doc["server_base"] | SERVER_BASE.c_str());
+  return true;
 }
