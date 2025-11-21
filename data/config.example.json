@@ -1,0 +1,5 @@
+{
+  "ssid": "YOUR_SSID",
+  "password": "YOUR_PASSWORD",
+  "server_base": "http://192.1.1.32:5000"
+}
