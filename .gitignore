@@ -6,6 +6,8 @@
 .history/
 cards.db
 .code-workspace
+.md
+.db
 # Python virtual environment
 lapenv/
 

@@ -7,6 +7,11 @@
 #include <ArduinoJson.h>
 #include "AuthSync.h"
 #include <LittleFS.h>
+#include <AsyncTelnetSerial.h>
+#include <HardwareSerial.h>
+
+
+
 
 /*
   Runtime flow (high level)
@@ -51,6 +56,11 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 
 // Display
 U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE);
+
+// Telnet server for wireless serial monitoring
+AsyncTelnetSerial telnet(&Serial);
+
+
 
 // ----------------- CONFIG -----------------
 // Network and server configuration are moved out of the firmware and
@@ -180,7 +190,35 @@ void setup() {
   }
 
   if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi connected: " + WiFi.localIP().toString());
+    Serial.println("");
+    Serial.println("WiFi connected");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());
+    u8x8.drawString(0, 2, "WiFi OK     ");
+    
+    if (telnet.begin(115200, true, false)) {
+      Serial.println("Telnet server started on port 23");
+      Serial.print("Connect via: telnet ");
+      Serial.println(WiFi.localIP());
+      
+      // Add connection callback to see when clients connect
+      telnet.onConnect([](void*, AsyncClient* client) {
+        Serial.println("[Telnet] Client connected from " + client->remoteIP().toString());
+        client->write("=== ESP32 RFID System ===\r\n");
+        client->write("Telnet session active\r\n\r\n");
+      });
+      
+      telnet.onDisconnect([](AsyncClient* client) {
+        Serial.println("[Telnet] Client disconnected");
+      });
+      
+      // Note: AsyncTelnetSerial automatically mirrors Serial output to telnet
+      // No macro redirection needed - it works as a pass-through
+    } else {
+      Serial.println("Telnet server failed to start");
+    }
+    
+    
     if (authSync && authSync->begin()) {  // Initial sync attempt
       u8x8.drawString(0, 2, "DB OK");
       serverReachable = true;
@@ -198,10 +236,7 @@ void setup() {
   delay(1000);
   
 }
-
-// ----------------- MAIN LOOP -----------------
 void loop() {
-  
   // Periodic server reachability check (every 5 seconds)
   if (millis() - lastServerCheck > 5000) {
     bool nowReachable = false;
