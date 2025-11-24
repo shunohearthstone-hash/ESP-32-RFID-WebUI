@@ -25,47 +25,38 @@ public:
 #endif
 
     uint32_t getCardCount() const { return max_card_id + 1; }
-    size_t   getMemoryUsed() const { return (max_card_id + 7) / 8; }
+    size_t   getMemoryUsed() const { return calcBitsetBytes(max_card_id); }
 
 private:
     String   server_base;
-    uint8_t* authorized_bits = nullptr; //Safe null before initialization
+    uint8_t* authorized_bits = nullptr;
     uint32_t max_card_id = 0;
     unsigned long last_sync = 0;
-    static const unsigned long SYNC_INTERVAL = 60000;  // 1 minute
+    static const unsigned long SYNC_INTERVAL = 60000;
 
-    // Lightweight server reachability caching to avoid hitting endpoint on every auth check
-    unsigned long last_server_probe = 0;      // millis of last /api/status probe
-    bool          server_last_ok    = false;  // result of last probe (HTTP 200)
+    unsigned long last_server_probe = 0;
+    bool server_last_ok = false;
+    bool serverPreviouslyUnreachable = false;
 
     bool syncFromServer();
-    int  getCardIdFromServer(const String& uid);
-    // Query server for card existence and authorization. Returns true on
-    // success and fills card_id and authorized. Returns false on network
-    // error or if the server reports the card does not exist.
     bool getCardAuthFromServer(const String& uid, int &card_id, bool &authorized);
+    int  getCardIdFromServer(const String& uid);
+    void addKnownAuth(const String& uid, bool allowed);
 
-    // Offline hashed permissions cache -----------------------------
-    static uint64_t hashUid(const String& s);
+    uint64_t hashUid(const String& s);
     void saveToNVS();
     void loadFromNVS();
-    void addKnownAuth(const String& uid, bool allowed);
 
     Preferences prefs_;
     bool prefsOpen_ = false;
     std::vector<uint64_t> allowHashes_;
     std::vector<uint64_t> denyHashes_;
 #if 1
-    // Bitset safety helpers
     size_t calcBitsetBytes(uint32_t maxId) const;
     bool isBitSet(uint32_t id) const;
     void setBit(uint32_t id);
     void clearBit(uint32_t id);
     bool writeByteAt(size_t idx, uint8_t val);
     bool readByteAt(size_t idx, uint8_t &out) const;
-#endif
-#ifdef UNIT_TEST
-    // Test helper: force internal max card id (test-only)
-    void TEST_setMaxCardId(size_t maxCardId);
 #endif
 };

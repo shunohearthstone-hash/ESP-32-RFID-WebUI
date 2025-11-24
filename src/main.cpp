@@ -9,6 +9,7 @@
 #include <LittleFS.h>
 #include <AsyncTelnetSerial.h>
 #include <HardwareSerial.h>
+#include "ConfigManager.h"
 
 
 
@@ -103,15 +104,6 @@ void updateEnrollStatus();
 void updateDisplay();
 void drawheader();
 void drawEnrollIndicator(bool on);
-void listLittleFSFiles();  // helper to enumerate files on LittleFS (debug/verify)
-
-// LittleFS helpers (implemented at the bottom of this file)
-// - saveConfigToLittleFS: write a JSON object to /config.json
-// - readConfigJsonString: return the raw JSON string stored on LittleFS
-// - loadConfigFromLittleFS: parse the JSON and populate runtime variables
-bool saveConfigToLittleFS(const String &ssid, const String &pass, const String &server_base);
-String readConfigJsonString();
-bool loadConfigFromLittleFS();
 
 // ----------------- SETUP -----------------
 void setup() {
@@ -129,7 +121,7 @@ void setup() {
 
   // Ensure FS is mounted before trying to load config
   if (LittleFS.begin()) {
-    if (loadConfigFromLittleFS()) {
+    if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
       Serial.println("Config loaded from LittleFS");
       Serial.println("SSID: " + SSID);
       Serial.println("PASS: " + PASS);
@@ -142,8 +134,8 @@ void setup() {
     else {
       Serial.println("config.json missing -> auto-provisioning defaults");
       // One-time provisioning: write a default config, then reload.
-      /*if (saveConfigToLittleFS("SSID", "PASS", "http://SERVER_BASE")) {
-        if (loadConfigFromLittleFS()) {
+      /*if (ConfigManager::saveConfig("SSID", "PASS", "http://SERVER_BASE")) {
+        if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
           Serial.println("Provisioned default config.json");
           Serial.println("SSID: " + SSID);
           Serial.println("PASS: " + PASS);
@@ -158,22 +150,22 @@ void setup() {
         u8x8.drawString(0, 2, "PROV FAIL");
       }
     }
-    listLittleFSFiles();
+    ConfigManager::listFiles();
   } else {
     Serial.println("LittleFS mount failed, formatting...");
     LittleFS.format();*/
     if (LittleFS.begin()) {
       Serial.println("LittleFS formatted and remounted");
-      if (loadConfigFromLittleFS()) {
+      if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
         Serial.println("Config loaded from LittleFS");
-        listLittleFSFiles();
+        ConfigManager::listFiles();
       }
     } else {
       Serial.println("LittleFS format/remount failed");
       u8x8.drawString(0, 2, "FS FAIL");
     }
   }
-  vTaskDelay(100 / portTICK_PERIOD_MS);  // Give some time for LittleFS to stabilize
+ delay(100);  // Give some time for LittleFS to stabilize
     
     // Create AuthSync now that SERVER_BASE is known (only if configured)
   if (authSync) { delete authSync; authSync = nullptr; }
@@ -195,7 +187,9 @@ void setup() {
     Serial.print("IP address: ");
     Serial.println(WiFi.localIP());
     u8x8.drawString(0, 2, "WiFi OK     ");
-    
+    //Wifi modem sleep
+    WiFi.setSleep(true);
+
     if (telnet.begin(115200, true, false)) {
       Serial.println("Telnet server started on port 23");
       Serial.print("Connect via: telnet ");
@@ -212,8 +206,7 @@ void setup() {
         Serial.println("[Telnet] Client disconnected");
       });
       
-      // Note: AsyncTelnetSerial automatically mirrors Serial output to telnet
-      // No macro redirection needed - it works as a pass-through
+      
     } else {
       Serial.println("Telnet server failed to start");
     }
@@ -233,7 +226,7 @@ void setup() {
     serverReachable = false;
     displayedServerReachable = false;
   }
-  delay(1000);
+  delay(100);
   
 }
 void loop() {
@@ -272,7 +265,7 @@ void loop() {
     Serial.println("Scanned: " + uid);
     lastUID = uid;
 
-    // Compute hash for display (same method as AuthSync)
+    // Compute hash for display (same method as AuthSync) ----------- FOR DEBUGGING ----
     String normalized = uid;
     normalized.trim();
     normalized.toUpperCase();
@@ -432,52 +425,3 @@ void updateEnrollStatus() {
   http.end();
 }
 
-// ---------------- LittleFS config helpers ----------------
-String readConfigJsonString() {
-  // assume LittleFS.begin() was already called in setup()
-  File f = LittleFS.open("/config.json", "r");
-  if (!f) return String();
-  size_t sz = f.size();
-  String contents;
-  contents.reserve(sz + 1);
-  while (f.available()) contents += (char)f.read();
-  f.close();
-  return contents;
-}
-
-bool saveConfigToLittleFS(const String &ssid, const String &pass, const String &server_base) {
-  // assume LittleFS.begin() was already called in setup()
-  DynamicJsonDocument doc(512);
-  doc["ssid"] = ssid;
-  doc["password"] = pass;
-  doc["server_base"] = server_base;
-  File f = LittleFS.open("/config.json", "w");
-  if (!f) return false;
-  if (serializeJson(doc, f) == 0) { f.close(); return false; }
-  f.close();
-  return true;
-}
-
-bool loadConfigFromLittleFS() {
-  String json = readConfigJsonString();
-  if (json.length() == 0) return false;
-  DynamicJsonDocument doc(1024);
-  DeserializationError err = deserializeJson(doc, json);
-  if (err) return false;
-  SSID = String(doc["ssid"] | SSID.c_str());
-  PASS = String(doc["password"] | PASS.c_str());
-  SERVER_BASE = String(doc["server_base"] | SERVER_BASE.c_str());
-  return true;
-}
-
-void listLittleFSFiles() {
-  File root = LittleFS.open("/");
-  if (!root) { Serial.println("LittleFS root open failed"); return; }
-  Serial.println("LittleFS contents:");
-  File f = root.openNextFile();
-  if (!f) Serial.println("  (empty)");
-  while (f) {
-    Serial.printf("  %s (%u bytes)\n", f.name(), (unsigned)f.size());
-    f = root.openNextFile();
-  }
-}

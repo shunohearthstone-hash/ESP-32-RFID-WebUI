@@ -211,7 +211,7 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
     String payload = http.getString();
     http.end();
 
-    DynamicJsonDocument doc(256);
+    JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload);
     if (err) return false;
 
@@ -224,7 +224,7 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
 
 bool AuthSync::syncFromServer() {
     if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
-    // Optional: reuse cached server_last_ok (force probe if stale so initial sync benefits)
+    
     if (millis() - last_server_probe > 5000) {
         last_server_probe = millis();
         HTTPClient ping;
@@ -237,9 +237,6 @@ bool AuthSync::syncFromServer() {
             Serial.println("[AuthSync] Sync aborted: server unreachable");
             return false;
         }
-    } else if (!server_last_ok) {
-        Serial.println("[AuthSync] Sync skipped: server previously unreachable");
-        return false;
     }
 
     HTTPClient http;
@@ -263,10 +260,13 @@ bool AuthSync::syncFromServer() {
         return false;
     }
 
+    // Extract new maximum card ID and bitset hex from server payload
     uint32_t new_max = doc["max_id"] | 0;
     String hex = doc["bits"].as<String>();
 
-    // Free old heap memory and allocate for new_max safely
+    // Free any existing authorization bitset and allocate a new
+    // heap buffer sized for new_max card IDs. If allocation or
+    // size calculation fails, reset max_card_id and abort the sync.
     if (authorized_bits) { free(authorized_bits); authorized_bits = nullptr; }
 
     size_t bytes = calcBitsetBytes(new_max);
@@ -282,17 +282,21 @@ bool AuthSync::syncFromServer() {
     }
     memset(authorized_bits, 0, bytes);
 
-    // Fill bytes from hex string (two chars per byte). Use safe writer.
+    // Decode the hex bitset payload (two characters per byte) into
+    // the newly allocated buffer using the bounds-checked writer.
     for (size_t i = 0; i + 1 < hex.length(); i += 2) {
         String byteStr = hex.substring(i, i + 2);
         uint8_t v = (uint8_t)strtol(byteStr.c_str(), nullptr, 16);
         if (!writeByteAt(i / 2, v)) break;
     }
 
+    // Commit the new bitset and record the time of this successful sync.
     max_card_id = new_max;
     last_sync = millis();
 
-    // Optionally seed offline hashed lists if server provides UID arrays
+    // Optionally refresh offline allow/deny UID hash lists when the
+    // server includes arrays of UIDs. These are normalized, hashed,
+    // de-duplicated, and then swapped into the in-memory caches.
     if (doc["allow"].is<JsonArray>() || doc["allow_uids"].is<JsonArray>() ||
         doc["deny"].is<JsonArray>()  || doc["deny_uids"].is<JsonArray>()) {
         std::vector<uint64_t> allowNew;
@@ -324,11 +328,15 @@ bool AuthSync::syncFromServer() {
         }
     }
 
+    // Log a compact summary of the sync result for debugging.
     Serial.printf("[AuthSync] Synced %lu cards → %u bytes heap\n", max_card_id + 1, bytes);
     return true;
 }
 
 int AuthSync::getCardIdFromServer(const String& uid) {
+    // Perform a one-off lookup for a card's numeric ID given its
+    // UID string via /api/cards/<uid>. Returns -1 on any network,
+    // HTTP, or parsing failure, or when the card does not exist.
     if (WiFi.status() != WL_CONNECTED) return -1;
 
     HTTPClient http;
@@ -352,7 +360,8 @@ int AuthSync::getCardIdFromServer(const String& uid) {
         return -1;
     }
 
-    // If card exists, return card_id (even if unauthorized) so we can read bitset
+    // If card exists, return card_id (even if unauthorized) so callers
+    // can still correlate the UID with a position in the authorization bitset.
     bool exists = doc["exists"] | false;
     if (!exists) return -1;
     return doc["card_id"] | -1;
@@ -360,6 +369,9 @@ int AuthSync::getCardIdFromServer(const String& uid) {
 
 // -------------------- Offline cache helpers --------------------
 void AuthSync::addKnownAuth(const String& uid, bool allowed) {
+    // Learn a card's authorization status for offline use by
+    // normalizing + hashing the UID, then inserting that hash
+    // into either the allow or deny cache and persisting to NVS.
     uint64_t h = hashUid(uid);
     // Ensure sorted insert
     auto insert_sorted = [](std::vector<uint64_t>& vec, uint64_t val){
@@ -381,6 +393,9 @@ void AuthSync::addKnownAuth(const String& uid, bool allowed) {
 }
 
 void AuthSync::saveToNVS() {
+    // Persist the current allow/deny hash vectors into NVS. Counts
+    // are stored separately from the raw uint64_t blobs so they can
+    // be reconstructed on the next boot.
     if (!prefsOpen_) return;
     // Store counts and raw blobs; guard against empty vectors
     prefs_.putUInt("allow_n", (uint32_t)allowHashes_.size());
@@ -398,6 +413,8 @@ void AuthSync::saveToNVS() {
 }
 
 void AuthSync::loadFromNVS() {
+    // Restore allow/deny hash vectors from NVS into memory and
+    // ensure they are sorted so that binary_search remains valid.
     if (!prefsOpen_) return;
     uint32_t an = prefs_.getUInt("allow_n", 0);
     uint32_t dn = prefs_.getUInt("deny_n", 0);
@@ -426,7 +443,7 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
 
     // Update max_card_id and allocate a new bitset (if non-zero)
     max_card_id = (uint32_t)maxCardId;
-    size_t nbytes = (max_card_id + 7) / 8;
+    size_t nbytes = calcBitsetBytes(max_card_id);
     if (nbytes == 0) {
         // nothing to allocate
         return;
@@ -437,24 +454,6 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
     if (authorized_bits) {
         memset(authorized_bits, 0, nbytes);
     }
-}
-#endif
-
-#ifdef UNIT_TEST
-void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
-    // Defensive: cap to a sane upper bound to avoid OOM during tests
-    const size_t SAFE_MAX = 10 * 1000 * 1000; // 10M cards -> ~1.25MB bitset
-    if (maxCardId > SAFE_MAX) maxCardId = SAFE_MAX;
-
-    // free existing bitset if any
-    if (authorized_bits) {
-        free(authorized_bits);
-        authorized_bits = nullptr;
-    }
-    max_card_id = maxCardId;
-    size_t nbytes = (max_card_id + 8) / 8;
-    authorized_bits = (uint8_t*)malloc(nbytes);
-    if (authorized_bits) memset(authorized_bits, 0, nbytes);
 }
 #endif
 
