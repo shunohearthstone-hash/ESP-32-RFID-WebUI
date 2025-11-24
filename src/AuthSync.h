@@ -14,6 +14,7 @@ public:
 
     bool begin();                         // initial sync (call from setup())
     bool update();                        // periodic sync (call from loop or timer)
+    bool preloadOffline();                // load NVS caches only (no network attempt)
 
     // Main function used after every scan
     bool isAuthorized(const String& uid);

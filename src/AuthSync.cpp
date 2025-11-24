@@ -12,7 +12,7 @@
  Server reachability is throttled; no HTTP attempted when previously marked unreachable.
  Prioritizes fresh server authorization when available,
  with secondary binary search authorization offline. */
-
+//.............THIS HAS ORDER HAS BEEN REVERSED....................//
  /* Server > Hash: if we have network connectivity,
         ask the server first for card authorization.
 
@@ -90,7 +90,8 @@ size_t AuthSync::calcBitsetBytes(uint32_t maxId) const {
     if (bits > std::numeric_limits<size_t>::max() - 7) return 0;
     return (bits + 7) / 8;
 }
-
+//Write a byte at index idx in the bitset, return true on success, 
+//false when out of bounds or uninitialized
 bool AuthSync::writeByteAt(size_t idx, uint8_t val) {
     if (!authorized_bits) return false;
     size_t bytes = calcBitsetBytes(max_card_id);
@@ -99,7 +100,8 @@ bool AuthSync::writeByteAt(size_t idx, uint8_t val) {
     authorized_bits[idx] = val;
     return true;
 }
-
+//Safe read of a byte at index idx in the bitset, return true on success,
+//false when out of bounds or uninitialized
 bool AuthSync::readByteAt(size_t idx, uint8_t &out) const {
     if (!authorized_bits) return false;
     size_t bytes = calcBitsetBytes(max_card_id);
@@ -108,7 +110,8 @@ bool AuthSync::readByteAt(size_t idx, uint8_t &out) const {
     out = authorized_bits[idx];
     return true;
 }
-
+//checks whether a specific card ID’s authorization bit is set in the internal bitset
+// and returns true if it is, false otherwise.
 bool AuthSync::isBitSet(uint32_t id) const {
     if (!authorized_bits) return false;
     if (id > max_card_id) return false;
@@ -116,7 +119,8 @@ bool AuthSync::isBitSet(uint32_t id) const {
     uint8_t bit = id & 7;
     return ((authorized_bits[idx] >> bit) & 1) != 0;
 }
-
+//marks a specific card ID as authorized by setting its corresponding bit in the internal bitset.
+//Verify that buffer is allocated and id is within bounds before setting the bit.
 void AuthSync::setBit(uint32_t id) {
     if (!authorized_bits) return;
     if (id > max_card_id) return;
@@ -124,7 +128,8 @@ void AuthSync::setBit(uint32_t id) {
     uint8_t bit = id & 7;
     authorized_bits[idx] |= (1u << bit);
 }
-
+//Reverse of setBit: clears the authorization bit for a specific card ID,
+// marking it as unauthorized. Verify buffer and bounds before clearing.
 void AuthSync::clearBit(uint32_t id) {
     if (!authorized_bits) return;
     if (id > max_card_id) return;
@@ -133,16 +138,27 @@ void AuthSync::clearBit(uint32_t id) {
     authorized_bits[idx] &= ~(1u << bit);
 }
 
+// Open NVS and load any cached hashes first for offline use
 bool AuthSync::begin() {
-    // Open NVS and load any cached hashes first for offline use
     if (!prefsOpen_) {
         prefsOpen_ = prefs_.begin("auth", false);
     }
     if (prefsOpen_) {
         loadFromNVS();
     }
-    // Attempt initial sync from server (keeps legacy bitset flow intact)
     return syncFromServer();
+}
+
+// Load only offline caches from NVS; skip any network sync
+bool AuthSync::preloadOffline() {
+    if (!prefsOpen_) {
+        prefsOpen_ = prefs_.begin("auth", false);
+    }
+    if (prefsOpen_) {
+        loadFromNVS();
+        return true;
+    }
+    return false;
 }
 
 bool AuthSync::update() {
@@ -157,25 +173,33 @@ bool AuthSync::isAuthorized(const String& uid) {
     uint64_t h = hashUid(uid);
     Serial.printf("[AuthSync] UID: %s -> Hash: 0x%016llX\n", uid.c_str(), h);
 
-    
+    // Priority 1: Check local cache first (deny takes precedence)
+    bool denied = std::binary_search(denyHashes_.begin(), denyHashes_.end(), h);
+    if (denied) {
+        Serial.println("[AuthSync] Found in deny cache -> DENIED");
+        return false;
+    }
+    bool allowed = std::binary_search(allowHashes_.begin(), allowHashes_.end(), h);
+    if (allowed) {
+        Serial.println("[AuthSync] Found in allow cache -> AUTHORIZED");
+        return true;
+    }
+
+    // Priority 2: Unknown card - query server if online
+    Serial.println("[AuthSync] Unknown card; checking server...");
     if (WiFi.status() == WL_CONNECTED && server_base.length() > 0) {
         int card_id = -1;
         bool server_allowed = false;
         if (getCardAuthFromServer(uid, card_id, server_allowed)) {
-            // Learn the server result for offline use and return it
+            // Learn the server result for offline use next time
             addKnownAuth(uid, server_allowed);
+            Serial.printf("[AuthSync] Server says: %s\n", server_allowed ? "AUTHORIZED" : "DENIED");
             return server_allowed;
         }
-        // If server query failed or server reports unknown card, fall
-        // through to local cached checks below.
     }
     
-    
-    bool denied = std::binary_search(denyHashes_.begin(), denyHashes_.end(), h);
-    if (denied) return false;
-    bool allowed = std::binary_search(allowHashes_.begin(), allowHashes_.end(), h);
-    if (allowed) return true;
-
+    // Priority 3: Offline and unknown - deny by default
+    Serial.println("[AuthSync] Offline + unknown -> DENIED by default");
     return false;
 }
 
@@ -185,23 +209,32 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
     // Guard: need WiFi and a configured server base
     if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
 
+    // Backoff: only apply if we've actually probed before (last_server_probe != 0)
+    if (!server_last_ok && last_server_probe != 0 && (millis() - last_server_probe) < 10000) {
+        return false; // use offline cache immediately
+    }
+
     // Periodic lightweight server status probe (cached) to avoid expensive lookups when server down
-    if (millis() - last_server_probe > 5000) {
+    if (millis() - last_server_probe > 5000 || last_server_probe == 0) {
         last_server_probe = millis();
         HTTPClient ping;
-        ping.setTimeout(2000);
+        // Further reduce probe timeout to minimize per-scan delay when offline.
+        // A very short timeout risks false negatives on a slow network; tune if needed.
+        ping.setTimeout(250); // was 1000ms
         ping.begin(server_base + "/api/status");
         int sc = ping.GET();
         ping.end();
         server_last_ok = (sc == 200);
         if (!server_last_ok) {
-            Serial.println("[AuthSync] Server status probe failed; using offline cache");
+            Serial.println("[AuthSync] Server status probe failed quickly; using offline cache");
+            return false; // return immediately to avoid extra delay this scan
         }
     }
     if (!server_last_ok) return false;  // fallback to offline caches
 
+    // Additional quick guard: if probe just failed we already returned
     HTTPClient http;
-    http.setTimeout(5000);
+    http.setTimeout(1200); // reduce per-card lookup timeout
     http.begin(server_base + "/api/cards/" + uid);
     int code = http.GET();
     if (code != 200) {
@@ -224,11 +257,16 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
 
 bool AuthSync::syncFromServer() {
     if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
-    
-    if (millis() - last_server_probe > 5000) {
+    // Backoff: only after a failed probe and not on the very first attempt (last_server_probe != 0)
+    if (!server_last_ok && last_server_probe != 0 && (millis() - last_server_probe) < 10000) {
+        Serial.println("[AuthSync] Backoff active; skipping sync");
+        return false;
+    }
+
+    if (millis() - last_server_probe > 5000 || last_server_probe == 0) {
         last_server_probe = millis();
         HTTPClient ping;
-        ping.setTimeout(2000);
+        ping.setTimeout(300); // faster reachability probe for sync cycle
         ping.begin(server_base + "/api/status");
         int sc = ping.GET();
         ping.end();
@@ -240,7 +278,7 @@ bool AuthSync::syncFromServer() {
     }
 
     HTTPClient http;
-    http.setTimeout(5000);  // 5 second timeout
+    http.setTimeout(2000);  // shorter sync timeout
     http.begin(server_base + "/api/sync");
     int code = http.GET();
     
@@ -274,8 +312,8 @@ bool AuthSync::syncFromServer() {
         max_card_id = 0;
         return false;
     }
-
-    authorized_bits = (uint8_t*)malloc(bytes);          // DYNAMIC HEAP ALLOCATION
+// Allocate new bitset heap buffer and zero it
+    authorized_bits = (uint8_t*)malloc(bytes);          
     if (!authorized_bits) {
         max_card_id = 0;
         return false;
@@ -301,7 +339,8 @@ bool AuthSync::syncFromServer() {
         doc["deny"].is<JsonArray>()  || doc["deny_uids"].is<JsonArray>()) {
         std::vector<uint64_t> allowNew;
         std::vector<uint64_t> denyNew;
-
+// Extract optional allow/deny UID arrays from the sync JSON, normalize + hash
+// each UID into 64-bit values, and append to the new vectors.
         auto loadArray = [&](const char* key, std::vector<uint64_t>& out){
             JsonVariant var = doc[key];
             if (!var.is<JsonArray>()) return;
@@ -310,13 +349,16 @@ bool AuthSync::syncFromServer() {
                 out.push_back(hashUid(uid));
             }
         };
-
+//I don´t really understand std::sort, but this magic incantation calls loadArray
+// 4 times into temporary vectors, which are then sorted with std::sort and de-duplicated with
+//std::unique. Finally, if either vector is non-empty, they are swapped into the class members
+    
         loadArray("allow", allowNew);
         loadArray("allow_uids", allowNew);
         loadArray("deny", denyNew);
         loadArray("deny_uids", denyNew);
 
-        std::sort(allowNew.begin(), allowNew.end());
+        std::sort(allowNew.begin(), allowNew.end());//
         allowNew.erase(std::unique(allowNew.begin(), allowNew.end()), allowNew.end());
         std::sort(denyNew.begin(), denyNew.end());
         denyNew.erase(std::unique(denyNew.begin(), denyNew.end()), denyNew.end());
@@ -325,11 +367,13 @@ bool AuthSync::syncFromServer() {
             allowHashes_.swap(allowNew);
             denyHashes_.swap(denyNew);
             saveToNVS();
+            //It then saves the new vectors to NVS for persistence across reboots. 
+            
         }
     }
 
     // Log a compact summary of the sync result for debugging.
-    Serial.printf("[AuthSync] Synced %lu cards → %u bytes heap\n", max_card_id + 1, bytes);
+    Serial.printf("[AuthSync] Synced max_id=%lu (%u bytes heap)\n", max_card_id, bytes);
     return true;
 }
 
@@ -373,9 +417,9 @@ void AuthSync::addKnownAuth(const String& uid, bool allowed) {
     // normalizing + hashing the UID, then inserting that hash
     // into either the allow or deny cache and persisting to NVS.
     uint64_t h = hashUid(uid);
-    // Ensure sorted insert
+    // Ensure sorted insert - helper lambda
     auto insert_sorted = [](std::vector<uint64_t>& vec, uint64_t val){
-        auto it = std::lower_bound(vec.begin(), vec.end(), val);
+        auto it = std::lower_bound(vec.begin(), vec.end(), val); 
         if (it == vec.end() || *it != val) vec.insert(it, val);
     };
 

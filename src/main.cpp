@@ -7,9 +7,10 @@
 #include <ArduinoJson.h>
 #include "AuthSync.h"
 #include <LittleFS.h>
-#include <AsyncTelnetSerial.h>
-#include <HardwareSerial.h>
 #include "ConfigManager.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+#include <freertos/queue.h>
 
 
 
@@ -58,8 +59,7 @@ MFRC522 rfid(SS_PIN, RST_PIN);
 // Display
 U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(/* clock=*/ 22, /* data=*/ 21, /* reset=*/ U8X8_PIN_NONE);
 
-// Telnet server for wireless serial monitoring
-AsyncTelnetSerial telnet(&Serial);
+
 
 
 
@@ -104,11 +104,20 @@ void updateEnrollStatus();
 void updateDisplay();
 void drawheader();
 void drawEnrollIndicator(bool on);
+void NetworkTask(void* pv);
+
+// Queue for deferred network posting of scanned UIDs
+struct ScanItem { char uid[21]; };
+static QueueHandle_t scanQueue = nullptr;
 
 // ----------------- SETUP -----------------
 void setup() {
   Serial.begin(115200);
   delay(100);
+
+  // Force first auth line to render even if initial authorization is false
+  // by priming displayedAuth opposite of lastAuthorized.
+  displayedAuth = !lastAuthorized;
 
   Wire.begin(21, 22);
   u8x8.begin();
@@ -127,14 +136,23 @@ void setup() {
       Serial.println("PASS: " + PASS);
       Serial.println("SERVER_BASE: " + SERVER_BASE);
       u8x8.drawString(0, 2, "FS OK");
+      // Create AuthSync early so we can load offline caches from NVS
+      if (SERVER_BASE.length() > 0) {
+        authSync = new AuthSync(SERVER_BASE);
+        // Load cached allow/deny hashes only; defer network sync until WiFi is established
+        authSync->preloadOffline();
+        Serial.println("[AuthSync] Offline cache preloaded (no network yet)");
+      } else {
+        Serial.println("SERVER_BASE empty; offline authorization disabled until configured");
+      }
     } /* -------------  If failing to flash config.json, run auto-provisioning    -------------
                         Replace  this placeholder with your desired network details
                         to have the device write a default config.json on first boot.
-         ------------- ------------- ------------- ------------- ------------- -------------
-    else {
+         ------------- ------------- ------------- ------------- ------------- -------------*/
+    /*else {
       Serial.println("config.json missing -> auto-provisioning defaults");
       // One-time provisioning: write a default config, then reload.
-      /*if (ConfigManager::saveConfig("SSID", "PASS", "http://SERVER_BASE")) {
+      if (ConfigManager::saveConfig("SSID", "PASS", "SERVER_BASE")) {
         if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
           Serial.println("Provisioned default config.json");
           Serial.println("SSID: " + SSID);
@@ -153,7 +171,7 @@ void setup() {
     ConfigManager::listFiles();
   } else {
     Serial.println("LittleFS mount failed, formatting...");
-    LittleFS.format();*/
+    LittleFS.format();
     if (LittleFS.begin()) {
       Serial.println("LittleFS formatted and remounted");
       if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
@@ -164,16 +182,10 @@ void setup() {
       Serial.println("LittleFS format/remount failed");
       u8x8.drawString(0, 2, "FS FAIL");
     }
-  }
+  }*/
  delay(100);  // Give some time for LittleFS to stabilize
-    
-    // Create AuthSync now that SERVER_BASE is known (only if configured)
-  if (authSync) { delete authSync; authSync = nullptr; }
-  if (SERVER_BASE.length() > 0) {
-    authSync = new AuthSync(SERVER_BASE);
-  } else {
-    Serial.println("SERVER_BASE not configured; skipping AuthSync creation");
-  }
+  } 
+
 
   WiFi.begin(SSID.c_str(), PASS.c_str());
   int tries = 0;
@@ -189,37 +201,23 @@ void setup() {
     u8x8.drawString(0, 2, "WiFi OK     ");
     //Wifi modem sleep
     WiFi.setSleep(true);
+    delay(100);
 
-    if (telnet.begin(115200, true, false)) {
-      Serial.println("Telnet server started on port 23");
-      Serial.print("Connect via: telnet ");
-      Serial.println(WiFi.localIP());
-      
-      // Add connection callback to see when clients connect
-      telnet.onConnect([](void*, AsyncClient* client) {
-        Serial.println("[Telnet] Client connected from " + client->remoteIP().toString());
-        client->write("=== ESP32 RFID System ===\r\n");
-        client->write("Telnet session active\r\n\r\n");
-      });
-      
-      telnet.onDisconnect([](AsyncClient* client) {
-        Serial.println("[Telnet] Client disconnected");
-      });
-      
-      
-    } else {
-      Serial.println("Telnet server failed to start");
+    // Attempt an online sync now that WiFi is connected (we already loaded offline cache)
+    bool syncOk = false;
+    if (authSync) {
+      // Use public begin() to perform an immediate sync (reloads NVS + attempts server sync)
+      syncOk = authSync->begin();
     }
-    
-    
-    if (authSync && authSync->begin()) {  // Initial sync attempt
-      u8x8.drawString(0, 2, "DB OK");
+    if (syncOk) {
+      u8x8.drawString(0, 3, "DB OK");
       serverReachable = true;
       displayedServerReachable = true;
     } else {
-      u8x8.drawString(0, 2, "DB FAIL");
+      u8x8.drawString(0, 3, "DB OFFLINE  ");
       serverReachable = false;
       displayedServerReachable = false;
+      Serial.println("[AuthSync] Using offline cache (sync failed or server unreachable)");
     }
   } else {
     u8x8.drawString(0, 2, "WiFi FAIL");
@@ -227,16 +225,26 @@ void setup() {
     displayedServerReachable = false;
   }
   delay(100);
-  
+
+  // Create queue and network task (pin to core 0)
+  if (!scanQueue) {
+    scanQueue = xQueueCreate(10, sizeof(ScanItem));
+    if (scanQueue) {
+      xTaskCreatePinnedToCore(NetworkTask, "net_task", 4096, nullptr, 1, nullptr, 0);
+      Serial.println("[Tasks] Network task started on core 0");
+    } else {
+      Serial.println("[Tasks] Failed to create scanQueue");
+    }
+  }
 }
 void loop() {
   // Periodic server reachability check (every 5 seconds)
-  if (millis() - lastServerCheck > 5000) {
+  if (millis() - lastServerCheck > 500) {
     bool nowReachable = false;
     if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
       // Quick check via status endpoint (lightweight)
       HTTPClient http;
-      http.setTimeout(2000);
+      http.setTimeout(1000);
       http.begin(SERVER_BASE + "/api/status");
       int code = http.GET();
       http.end();
@@ -254,11 +262,7 @@ void loop() {
     lastServerCheck = millis();
   }
   
-  static unsigned long lastEnrollCheck = 0;
-  if (millis() - lastEnrollCheck > 500) {  // Refresh every 500ms
-    updateEnrollStatus();
-    lastEnrollCheck = millis();
-  }
+  // Enroll status now handled by NetworkTask (removed periodic HTTP here)
 
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
     String uid = getUidString();
@@ -276,21 +280,27 @@ void loop() {
       hash *= prime;
     }
     lastHash = hash;
-
-    JsonDocument resp = postLastScan(uid);
-    bool enrolled = resp["enrolled"] | false;
-
-  lastAuthorized = authSync ? authSync->isAuthorized(uid) : false;
+    lastAuthorized = authSync ? authSync->isAuthorized(uid) : false;
     updateEnrollStatus();  // Refresh after scan
     updateDisplay();
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
-    delay(400);
+    vTaskDelay(40 / portTICK_PERIOD_MS); // Debounce recommended delay
+    // Defer network POST of last scan to network task via queue
+    if (scanQueue) {
+      ScanItem item; memset(&item, 0, sizeof(item));
+      strncpy(item.uid, uid.c_str(), sizeof(item.uid) - 1);
+      if (xQueueSend(scanQueue, &item, 0) != pdPASS) {
+        Serial.println("[Queue] scanQueue full; dropping UID post");
+      }
+    }
+
+  
   }
 
-  if (authSync) authSync->update();  // Periodic sync check
+  // Periodic sync handled by NetworkTask
 
-  if (millis() - lastDisplayUpdate > 5000) {
+  if (millis() - lastDisplayUpdate > 500) {  // Update display every 500ms
     updateDisplay();
     lastDisplayUpdate = millis();
   }
@@ -303,7 +313,7 @@ void loop() {
   }
 }
 
-// Periodic sync check
+
  //--------------------------------  helpers  ----------------------------------
 String getUidString() {
   String uid = "";
@@ -330,9 +340,9 @@ void updateDisplay() {
   // Update DB status if changed
   if (serverReachable != displayedServerReachable) {
     if (serverReachable) {
-      u8x8.drawString(0, 2, "DB OK        ");
+      u8x8.drawString(0, 3, "DB OK        ");
     } else {
-      u8x8.drawString(0, 2, "DB LOST      ");
+      u8x8.drawString(0, 3, "DB LOST      ");
     }
     displayedServerReachable = serverReachable;
   }
@@ -349,7 +359,7 @@ void updateDisplay() {
   
   // Only update auth status if changed
   if (lastAuthorized != displayedAuth) {
-    u8x8.drawString(0, 3, (String("Auth:") + (lastAuthorized ? "YES" : "NO ")).c_str());
+    u8x8.drawString(0, 4, (String("Auth:") + (lastAuthorized ? "YES" : "NO ")).c_str());
     displayedAuth = lastAuthorized;
   }
   
@@ -361,7 +371,7 @@ void updateDisplay() {
     displayedHash = lastHash;
   }
   
-  // Enroll indicator handled separately in drawEnrollIndicator
+  
 }
 
 void drawEnrollIndicator(bool on) {
@@ -388,8 +398,13 @@ JsonDocument postLastScan(const String &uid) {
   // (e.g. on first-boot before provisioning /config.json).
   if (WiFi.status() != WL_CONNECTED) return JsonDocument();
   if (SERVER_BASE.length() == 0) return JsonDocument();
+  // Escape: if we already marked serverReachable false, skip HTTP entirely
+  if (!serverReachable) {
+    // Uncomment for verbose logging: Serial.println("[postLastScan] Skipped (serverReachable=false)");
+    return JsonDocument();
+  }
   HTTPClient http;
-  http.setTimeout(5000);
+  http.setTimeout(1500); // shorter timeout to avoid long blocking
   http.begin(String(SERVER_BASE) + "/api/last_scan");
   http.addHeader("Content-Type", "application/json");
   String body = "{\"uid\":\"" + uid + "\"}";
@@ -411,8 +426,10 @@ void updateEnrollStatus() {
   // and avoids pointless HTTP requests when not provisioned.
   if (WiFi.status() != WL_CONNECTED) { enrollMode = "none"; return; }
   if (SERVER_BASE.length() == 0) { enrollMode = "none"; return; }
+  // Escape: rely on periodic reachability check; if server currently unreachable, keep last mode
+  if (!serverReachable) { return; }
   HTTPClient http;
-  http.setTimeout(5000);
+  http.setTimeout(1500);
   http.begin(String(SERVER_BASE) + "/api/status");
   int code = http.GET();
   if (code == 200) {
@@ -423,5 +440,62 @@ void updateEnrollStatus() {
     enrollMode = (m && strlen(m)) ? String(m) : "none";
   }
   http.end();
+}
+
+// ----------- Network Task (core 0) ------------
+void NetworkTask(void* pv) {
+  Serial.printf("[Tasks] NetworkTask running on core %d\n", xPortGetCoreID());
+  unsigned long lastServerCheckLocal = 0;
+  unsigned long lastEnrollPoll = 0;
+  for (;;) {
+    // Periodic server reachability (every 5s)
+    if (millis() - lastServerCheckLocal > 5000) {
+      bool nowReachable = false;
+      if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
+        HTTPClient http;
+        http.setTimeout(800);
+        http.begin(SERVER_BASE + "/api/status");
+        int code = http.GET();
+        http.end();
+        nowReachable = (code == 200);
+      }
+      if (nowReachable != serverReachable) {
+        serverReachable = nowReachable;
+        Serial.printf("[DB] Reachable=%d\n", serverReachable);
+      }
+      lastServerCheckLocal = millis();
+    }
+
+    // Enroll status poll (500ms) only if reachable
+    if (serverReachable && (millis() - lastEnrollPoll > 1000)) {
+      updateEnrollStatus();
+      lastEnrollPoll = millis();
+    }
+
+    // AuthSync periodic sync
+    if (serverReachable && authSync) {
+      authSync->update();
+    }
+
+    // Drain scan queue: post last_scan events (limit per cycle)
+    if (serverReachable && scanQueue) {
+      for (int i=0; i<3; ++i) { // process up to 3 per loop to avoid starving
+        ScanItem item;
+        if (xQueueReceive(scanQueue, &item, 0) == pdPASS) {
+          postLastScan(String(item.uid));
+        } else {
+          break;
+        }
+      }
+    } else if (!serverReachable && scanQueue) {
+      // Optionally clear queue to avoid growth while offline
+      ScanItem dummy;
+      while (xQueueReceive(scanQueue, &dummy, 0) == pdPASS) {
+        // dropped silently
+      }
+    }
+
+    vTaskDelay(pdMS_TO_TICKS(50));
+  }
 }
 
