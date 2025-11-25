@@ -16,7 +16,7 @@
  /* Server > Hash: if we have network connectivity,
         ask the server first for card authorization.
 
-         /* Connected Example Flow:
+          Connected Example Flow:
         Scan UID: "04A1B2C3"
          ↓
         Hash (FNV-1a 64-bit): 0x8F3A4B2C1D9E7F6A (logged)
@@ -373,7 +373,7 @@ bool AuthSync::syncFromServer() {
     }
 
     // Log a compact summary of the sync result for debugging.
-    Serial.printf("[AuthSync] Synced max_id=%lu (%u bytes heap)\n", max_card_id, bytes);
+    Serial.printf("[AuthSync] Synced max_id=%u (%u bytes heap)\n", max_card_id, bytes);
     return true;
 }
 

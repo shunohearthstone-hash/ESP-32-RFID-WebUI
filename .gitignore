@@ -8,9 +8,10 @@ cards.db
 .code-workspace
 .md
 .db
+
 # Python virtual environment
 lapenv/
-
+.venv/
 # Python cache files
 __pycache__/
 *.pyc

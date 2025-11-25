@@ -11,6 +11,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/queue.h>
+#include <freertos/timers.h>
 
 
 
@@ -88,7 +89,6 @@ bool serverReachable = false;  // Track server/database reachability
 unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
-unsigned long lastServerCheck = 0;  // Last server status check time
 
 // Display state tracking (to avoid unnecessary redraws)
 String displayedUID = "";
@@ -110,10 +110,17 @@ void NetworkTask(void* pv);
 struct ScanItem { char uid[21]; };
 static QueueHandle_t scanQueue = nullptr;
 
+// Timer handle for server checks
+static TimerHandle_t serverCheckTimer = nullptr;
+
+// AuthSync timer (non-blocking): callback only sets a flag; NetworkTask does the work
+static TimerHandle_t authSyncTimer = nullptr;
+static volatile bool authSyncRequested = false;
+
 // ----------------- SETUP -----------------
 void setup() {
   Serial.begin(115200);
-  delay(100);
+  vTaskDelay(500 / portTICK_PERIOD_MS);
 
   // Force first auth line to render even if initial authorization is false
   // by priming displayedAuth opposite of lastAuthorized.
@@ -135,7 +142,7 @@ void setup() {
       Serial.println("SSID: " + SSID);
       Serial.println("PASS: " + PASS);
       Serial.println("SERVER_BASE: " + SERVER_BASE);
-      u8x8.drawString(0, 2, "FS OK");
+      u8x8.drawString(0, 2, "FS OK   ");
       // Create AuthSync early so we can load offline caches from NVS
       if (SERVER_BASE.length() > 0) {
         authSync = new AuthSync(SERVER_BASE);
@@ -152,7 +159,7 @@ void setup() {
     /*else {
       Serial.println("config.json missing -> auto-provisioning defaults");
       // One-time provisioning: write a default config, then reload.
-      if (ConfigManager::saveConfig("SSID", "PASS", "SERVER_BASE")) {
+      if (ConfigManager::saveConfig("JENSEN-Guest", "Kahlo2025", "http://10.60.84.91:5000")) {
         if (ConfigManager::loadConfig(SSID, PASS, SERVER_BASE)) {
           Serial.println("Provisioned default config.json");
           Serial.println("SSID: " + SSID);
@@ -181,16 +188,16 @@ void setup() {
     } else {
       Serial.println("LittleFS format/remount failed");
       u8x8.drawString(0, 2, "FS FAIL");
-    }
-  }*/
- delay(100);  // Give some time for LittleFS to stabilize
-  } 
+    }*/
+  }
+ vTaskDelay(100 / portTICK_PERIOD_MS);  // Give some time for LittleFS to stabilize
+  
 
 
   WiFi.begin(SSID.c_str(), PASS.c_str());
   int tries = 0;
   while (WiFi.status() != WL_CONNECTED && tries < 80) {
-    delay(500); Serial.print("."); tries++;
+    vTaskDelay(500 / portTICK_PERIOD_MS); Serial.print("."); tries++;
   }
 
   if (WiFi.status() == WL_CONNECTED) {
@@ -201,7 +208,7 @@ void setup() {
     u8x8.drawString(0, 2, "WiFi OK     ");
     //Wifi modem sleep
     WiFi.setSleep(true);
-    delay(100);
+    vTaskDelay(100 / portTICK_PERIOD_MS);
 
     // Attempt an online sync now that WiFi is connected (we already loaded offline cache)
     bool syncOk = false;
@@ -224,45 +231,21 @@ void setup() {
     serverReachable = false;
     displayedServerReachable = false;
   }
-  delay(100);
+  vTaskDelay(100 / portTICK_PERIOD_MS);
 
-  // Create queue and network task (pin to core 0)
+  // Create queue and network task (pin to core 0, lower priority than loop for RFID responsiveness)
   if (!scanQueue) {
     scanQueue = xQueueCreate(10, sizeof(ScanItem));
     if (scanQueue) {
-      xTaskCreatePinnedToCore(NetworkTask, "net_task", 4096, nullptr, 1, nullptr, 0);
-      Serial.println("[Tasks] Network task started on core 0");
+      xTaskCreatePinnedToCore(NetworkTask, "net_task", 4096, nullptr, 0, nullptr, 0);
+      Serial.println("[Tasks] Network task started on core 0 (priority 0)");
     } else {
       Serial.println("[Tasks] Failed to create scanQueue");
     }
   }
 }
 void loop() {
-  // Periodic server reachability check (every 5 seconds)
-  if (millis() - lastServerCheck > 500) {
-    bool nowReachable = false;
-    if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
-      // Quick check via status endpoint (lightweight)
-      HTTPClient http;
-      http.setTimeout(1000);
-      http.begin(SERVER_BASE + "/api/status");
-      int code = http.GET();
-      http.end();
-      nowReachable = (code == 200);
-    }
-    if (nowReachable != serverReachable) {
-      serverReachable = nowReachable;
-      if (serverReachable) {
-        Serial.println("[DB] Server reachable");
-      } else {
-        Serial.println("[DB] Server unreachable - falling back to offline mode");
-      }
-      updateDisplay();  // Force display update on status change
-    }
-    lastServerCheck = millis();
-  }
-  
-  // Enroll status now handled by NetworkTask (removed periodic HTTP here)
+  // Server reachability check now handled by FreeRTOS timer in NetworkTask
 
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
     String uid = getUidString();
@@ -285,7 +268,7 @@ void loop() {
     updateDisplay();
     rfid.PICC_HaltA();
     rfid.PCD_StopCrypto1();
-    vTaskDelay(40 / portTICK_PERIOD_MS); // Debounce recommended delay
+    vTaskDelay(100 / portTICK_PERIOD_MS); // Debounce recommended delay
     // Defer network POST of last scan to network task via queue
     if (scanQueue) {
       ScanItem item; memset(&item, 0, sizeof(item));
@@ -442,29 +425,66 @@ void updateEnrollStatus() {
   http.end();
 }
 
+// Timer callback for server reachability check
+void serverCheckTimerCallback(TimerHandle_t xTimer) {
+  bool nowReachable = false;
+  if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
+    HTTPClient http;
+    http.setTimeout(800);
+    http.begin(SERVER_BASE + "/api/status");
+    int code = http.GET();
+    http.end();
+    nowReachable = (code == 200);
+  }
+  if (nowReachable != serverReachable) {
+    serverReachable = nowReachable;
+    Serial.printf("[DB] Reachable=%d\n", serverReachable);
+  }
+}
+
+// Non-blocking timer callback for triggering AuthSync work.
+// Keep this callback tiny: it only sets a flag that NetworkTask will observe.
+void authSyncTimerCallback(TimerHandle_t xTimer) {
+  authSyncRequested = true;
+}
+
 // ----------- Network Task (core 0) ------------
 void NetworkTask(void* pv) {
   Serial.printf("[Tasks] NetworkTask running on core %d\n", xPortGetCoreID());
-  unsigned long lastServerCheckLocal = 0;
   unsigned long lastEnrollPoll = 0;
+  
+  // Create and start the timer (5000ms period, auto-reload)
+  serverCheckTimer = xTimerCreate(
+    "ServerCheck",                    // Timer name
+    pdMS_TO_TICKS(5000),             // Period: 5 seconds
+    pdTRUE,                          // Auto-reload
+    nullptr,                         // Timer ID (not used)
+    serverCheckTimerCallback         // Callback function
+  );
+  
+  if (serverCheckTimer != nullptr) {
+    xTimerStart(serverCheckTimer, 0);
+    Serial.println("[Tasks] Server check timer started");
+  } else {
+    Serial.println("[Tasks] Failed to create server check timer");
+  }
+  
+  // Create and start the auth sync timer (non-blocking callback)
+  authSyncTimer = xTimerCreate(
+    "AuthSync",                      // Timer name
+    pdMS_TO_TICKS(5000),              // Period: 5 seconds
+    pdTRUE,                           // Auto-reload
+    nullptr,                          // Timer ID (not used)
+    authSyncTimerCallback             // Callback function
+  );
+  if (authSyncTimer != nullptr) {
+    xTimerStart(authSyncTimer, 0);
+    Serial.println("[Tasks] AuthSync timer started");
+  } else {
+    Serial.println("[Tasks] Failed to create auth sync timer");
+  }
+  
   for (;;) {
-    // Periodic server reachability (every 5s)
-    if (millis() - lastServerCheckLocal > 5000) {
-      bool nowReachable = false;
-      if (WiFi.status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
-        HTTPClient http;
-        http.setTimeout(800);
-        http.begin(SERVER_BASE + "/api/status");
-        int code = http.GET();
-        http.end();
-        nowReachable = (code == 200);
-      }
-      if (nowReachable != serverReachable) {
-        serverReachable = nowReachable;
-        Serial.printf("[DB] Reachable=%d\n", serverReachable);
-      }
-      lastServerCheckLocal = millis();
-    }
 
     // Enroll status poll (500ms) only if reachable
     if (serverReachable && (millis() - lastEnrollPoll > 1000)) {
@@ -472,8 +492,9 @@ void NetworkTask(void* pv) {
       lastEnrollPoll = millis();
     }
 
-    // AuthSync periodic sync
-    if (serverReachable && authSync) {
+    // AuthSync periodic sync — triggered by timer flag (non-blocking timer callback)
+    if (serverReachable && authSync && authSyncRequested) {
+      authSyncRequested = false; // clear flag before doing work
       authSync->update();
     }
 
@@ -482,7 +503,17 @@ void NetworkTask(void* pv) {
       for (int i=0; i<3; ++i) { // process up to 3 per loop to avoid starving
         ScanItem item;
         if (xQueueReceive(scanQueue, &item, 0) == pdPASS) {
-          postLastScan(String(item.uid));
+          // Post scan to server and handle enrollment side-effects returned by the server.
+          JsonDocument resp = postLastScan(String(item.uid));
+          // If server acknowledged enrollment, clear enroll mode and redraw indicator immediately
+          if (resp.size() > 0) {
+            bool enrolled = resp["enrolled"] | false;
+            if (enrolled) {
+              enrollMode = "none";
+              // Clear indicator (non-blinking)
+              drawEnrollIndicator(false);
+            }
+          }
         } else {
           break;
         }
