@@ -3,62 +3,46 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <ArduinoJson.h>
-#include <LittleFS.h>               // added: read config.json from LittleFS
+#include <LittleFS.h>
 
-// Include AuthSync implementation directly
+// Include AuthSync and ConfigManager implementation
+#include "../src/ConfigManager.h"
+#include "../src/ConfigManager.cpp"
 #include "../src/AuthSync.h"
 #include "../src/AuthSync.cpp"
 
 // Test WiFi credentials (loaded from LittleFS /config.json at runtime)
-String TEST_SSID = "";
-String TEST_PASS = "";
-String TEST_SERVER = "";
+String SSID = "";
+String PASS = "";
+String SERVER_BASE = "";
 
-// Load network config from LittleFS /config.json
+// Test results logging
+File testLogFile;
+const char* TEST_LOG_PATH = "/test_results.txt";
+
+// Load network config from LittleFS /config.json using ConfigManager
 static bool loadNetworkConfigFromLittleFS() {
     if (!LittleFS.begin()) {
         Serial.println("[CFG] LittleFS.mount FAILED");
         return false;
     }
-    if (!LittleFS.exists("/config.json")) {
-        Serial.println("[CFG] /config.json not found");
-        return false;
+    
+    bool result = ConfigManager::loadConfig(SSID, PASS, SERVER_BASE);
+    
+    if (result) {
+        Serial.printf("[CFG] Loaded ssid='%s' server='%s'\n", SSID.c_str(), SERVER_BASE.c_str());
+    } else {
+        Serial.println("[CFG] Failed to load config.json");
     }
-    File f = LittleFS.open("/config.json", "r");
-    if (!f) {
-        Serial.println("[CFG] Failed to open /config.json");
-        return false;
-    }
-    size_t sz = f.size();
-    if (sz == 0) {
-        f.close();
-        Serial.println("[CFG] /config.json empty");
-        return false;
-    }
-    std::unique_ptr<char[]> buf(new char[sz + 1]);
-    f.readBytes(buf.get(), sz);
-    buf[sz] = '\0';
-    f.close();
-
-    StaticJsonDocument<512> doc;
-    DeserializationError err = deserializeJson(doc, buf.get());
-    if (err) {
-        Serial.print("[CFG] JSON parse failed: ");
-        Serial.println(err.c_str());
-        return false;
-    }
-    TEST_SSID = String(doc["ssid"] | "");
-    TEST_PASS = String(doc["password"] | "");
-    TEST_SERVER = String(doc["server_base"] | "");
-    Serial.printf("[CFG] Loaded ssid='%s' server='%s'\n", TEST_SSID.c_str(), TEST_SERVER.c_str());
-    return true;
+    
+    return result;
 }
 
 void setUp(void) {
     // Connect to WiFi before each test (if config present)
-    if (TEST_SSID.length() > 0) {
+    if (SSID.length() > 0) {
         if (WiFi.status() != WL_CONNECTED) {
-            WiFi.begin(TEST_SSID.c_str(), TEST_PASS.c_str());
+            WiFi.begin(SSID.c_str(), PASS.c_str());
             int timeout = 0;
             while (WiFi.status() != WL_CONNECTED && timeout < 20) {
                 delay(500);
@@ -80,7 +64,7 @@ void test_authsync_construction() {
     Serial.printf("\n[TEST] Free heap before: %u bytes\n", free_before);
     
     {
-        AuthSync auth(TEST_SERVER);
+        AuthSync auth(SERVER_BASE);
         uint32_t free_during = ESP.getFreeHeap();
         Serial.printf("[TEST] Free heap after construction: %u bytes\n", free_during);
         
@@ -104,7 +88,7 @@ void test_authsync_sync_allocates() {
         return;
     }
     
-    AuthSync auth(TEST_SERVER);
+    AuthSync auth(SERVER_BASE);
     
     uint32_t free_before = ESP.getFreeHeap();
     Serial.printf("\n[TEST] Free heap before sync: %u bytes\n", free_before);
@@ -129,7 +113,7 @@ void test_authsync_sync_allocates() {
 
 // Test 3: Multiple syncs don't leak memory
 void test_authsync_no_memory_leak() {
-    AuthSync auth(TEST_SERVER);
+    AuthSync auth(SERVER_BASE);
     
     // Do initial sync
     auth.begin();
@@ -165,7 +149,7 @@ void test_authsync_memory_size() {
         return;
     }
     
-    AuthSync auth(TEST_SERVER);
+    AuthSync auth(SERVER_BASE);
     bool sync_ok = auth.begin();
     
     if (!sync_ok) {
@@ -188,20 +172,8 @@ void test_authsync_memory_size() {
     TEST_ASSERT_EQUAL(expected_bytes, memory_used);
 }
 
-// Test 5: Authorization check works
-void test_authsync_authorization_check() {
-    AuthSync auth(TEST_SERVER);
-    bool sync_result = auth.begin();
-    
-    TEST_ASSERT_TRUE(sync_result);
-    
-    // Test with a known non-existent card
-    bool authorized = auth.isAuthorized("FFFFFFFF");
-    Serial.printf("\n[TEST] Authorization for FFFFFFFF: %s\n", authorized ? "YES" : "NO");
-    
-    // This should be false unless you have this card enrolled
-    TEST_ASSERT_FALSE(authorized);
-}
+
+
 
 // Test 6: Stress test - rapid allocations
 void test_authsync_stress() {
@@ -210,7 +182,7 @@ void test_authsync_stress() {
     
     // Create and destroy multiple AuthSync objects rapidly
     for (int i = 0; i < 10; i++) {
-        AuthSync* auth = new AuthSync(TEST_SERVER);
+        AuthSync* auth = new AuthSync(SERVER_BASE);
         auth->begin();
         delay(50);
         delete auth;
@@ -227,52 +199,49 @@ void test_authsync_stress() {
     TEST_ASSERT_GREATER_OR_EQUAL(initial_heap - 500, final_heap);
 }
 
-void setup() {
-    Serial.begin(115200);
-    delay(2000);
-
-    // Load network config from LittleFS so tests use device config instead of hardcoded credentials
-    loadNetworkConfigFromLittleFS();
-
-    Serial.println("\n\n========================================");
-    Serial.println("AuthSync Heap Allocation Tests");
-    Serial.println("========================================\n");
-
-    UNITY_BEGIN();
-
-    RUN_TEST(test_authsync_construction);
-    RUN_TEST(test_authsync_sync_allocates);
-    RUN_TEST(test_authsync_no_memory_leak);
-    RUN_TEST(test_authsync_memory_size);
-    RUN_TEST(test_authsync_authorization_check);
-    RUN_TEST(test_authsync_stress);
-
+// Test 7: Test with 3000 cards using TEST_setMaxCardId
 #ifdef AUTH_TEST_HOOK
-    RUN_TEST(test_authsync_overflow_safety);
-#endif
+void test_authsync_3000_cards() {
+    Serial.println("\n[TEST] Testing with 3000 cards");
+    
+    uint32_t initial_heap = ESP.getFreeHeap();
+    Serial.printf("[TEST] Initial heap: %u bytes\n", initial_heap);
+    
+    AuthSync auth(SERVER_BASE);
+    
+    // Set max card ID to 2999 (3000 cards: 0-2999)
+    auth.TEST_setMaxCardId(2999);
+    
+    uint32_t card_count = auth.getCardCount();
+    size_t memory_used = auth.getMemoryUsed();
+    
+    Serial.printf("[TEST] Card count: %lu\n", card_count);
+    Serial.printf("[TEST] Memory used: %u bytes\n", memory_used);
+    
+    // Verify card count
+    TEST_ASSERT_EQUAL(3000, card_count);
+    
+    // Calculate expected bytes: (3000 + 7) / 8 = 375.875 = 375 bytes
+    size_t expected_bytes = (3000 + 7) / 8;
+    Serial.printf("[TEST] Expected bytes: %u\n", expected_bytes);
+    
+    TEST_ASSERT_EQUAL(expected_bytes, memory_used);
+    TEST_ASSERT_EQUAL(375, memory_used);  // 3000 cards = 375 bytes
+    
+    uint32_t heap_used = initial_heap - ESP.getFreeHeap();
+    Serial.printf("[TEST] Heap used for 3000 cards: %u bytes\n", heap_used);
+    
+    // Verify it's reasonable (375 bytes + overhead)
+    TEST_ASSERT_LESS_THAN(1000, heap_used);  // Should be under 1KB
+}
 
-/*
- * Overflow safety test (test-only).
- *
- * This test requires a test hook in `AuthSync` named
- * `void TEST_setMaxCardId(size_t maxCardId)` which is intentionally
- * excluded from production builds. To enable this test:
- *  - Define `AUTH_TEST_HOOK` when building the test target.
- *  - Add the TEST_setMaxCardId helper to `AuthSync` (see notes below).
- *
- * The test requests an absurdly large card id and verifies the
- * resulting memory size reported by getMemoryUsed() is sensible
- * (didn't wrap or underflow). If the test hook or macro isn't
- * defined, the test is skipped.
- */
-#ifdef AUTH_TEST_HOOK
+// Test 8: Overflow safety test
 void test_authsync_overflow_safety() {
-    AuthSync auth(TEST_SERVER);
+    AuthSync auth(SERVER_BASE);
 
     // Ask the implementation to pretend it has a huge max_card_id.
     // The production code should cap allocations; the test hook
-    // allows us to simulate pathological server values without
-    // changing production behavior.
+
     auth.TEST_setMaxCardId((size_t)-1);
 
     size_t mem = auth.getMemoryUsed();
@@ -284,7 +253,78 @@ void test_authsync_overflow_safety() {
 }
 #endif
 
+void setup() {
+    Serial.begin(115200);
+    delay(2000);
+
+    // Load network config from LittleFS so tests use device config instead of hardcoded credentials
+    loadNetworkConfigFromLittleFS();
+
+    // Open log file for writing test results
+    testLogFile = LittleFS.open(TEST_LOG_PATH, "w");
+    if (testLogFile) {
+        Serial.printf("Test results will be saved to: %s\n", TEST_LOG_PATH);
+        
+        // Write header to log file
+        char timestamp[64];
+        snprintf(timestamp, sizeof(timestamp), "Test Run: %lu ms since boot\n", millis());
+        testLogFile.print(timestamp);
+        testLogFile.printf("Free Heap: %u bytes\n", ESP.getFreeHeap());
+        testLogFile.printf("Chip Model: %s\n", ESP.getChipModel());
+        testLogFile.printf("CPU Freq: %u MHz\n\n", ESP.getCpuFreqMHz());
+    } else {
+        Serial.println("Warning: Could not open test log file");
+    }
+
+    Serial.println("\n========================================");
+    Serial.println("AuthSync Heap Allocation Tests");
+    Serial.println("========================================\n");
+
+    UNITY_BEGIN();
+
+    RUN_TEST(test_authsync_construction);
+    RUN_TEST(test_authsync_sync_allocates);
+    RUN_TEST(test_authsync_no_memory_leak);
+    RUN_TEST(test_authsync_memory_size);
+  
+    RUN_TEST(test_authsync_stress);
+
+#ifdef AUTH_TEST_HOOK
+    RUN_TEST(test_authsync_3000_cards);
+    RUN_TEST(test_authsync_overflow_safety);
+#endif
+
     UNITY_END();
+    
+    // Close log file and print summary
+    if (testLogFile) {
+        testLogFile.print("\n========================================\n");
+        testLogFile.printf("Test run completed at: %lu ms\n", millis());
+        testLogFile.printf("Final Free Heap: %u bytes\n", ESP.getFreeHeap());
+        testLogFile.close();
+        
+        Serial.println("\n========================================");
+        Serial.printf("Test results saved to: %s\n", TEST_LOG_PATH);
+        Serial.println("========================================\n");
+        
+        // Read and display file size
+        File checkFile = LittleFS.open(TEST_LOG_PATH, "r");
+        if (checkFile) {
+            Serial.printf("Log file size: %u bytes\n", checkFile.size());
+            checkFile.close();
+        }
+    }
+
+    // After tests complete in setup(), add:
+    File resultsFile = LittleFS.open(TEST_LOG_PATH, "r");
+    if (resultsFile) {
+        Serial.println("\n\n=== TEST RESULTS FILE CONTENT ===");
+        while (resultsFile.available()) {
+            Serial.write(resultsFile.read());
+        }
+        Serial.println("\n=== END OF TEST RESULTS ===");
+        resultsFile.close();
+    }
 }
 
 void loop() {

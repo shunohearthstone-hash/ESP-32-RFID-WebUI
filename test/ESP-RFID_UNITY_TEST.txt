@@ -1,0 +1,205 @@
+
+
+========================================
+AuthSync Heap Allocation Tests
+========================================
+
+
+[TEST] Free heap before: 241056 bytes
+[TEST] Free heap after construction: 241004 bytes
+[TEST] Free heap after destruction: 241056 bytes
+test/test_authsync.cpp:298:test_authsync_construction:PASS
+
+[TEST] Free heap before sync: 241004 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Free heap after sync: 239628 bytes
+[TEST] Synced cards: 9
+[TEST] Memory used: 1 bytes
+[TEST] Sync result: SUCCESS
+test/test_authsync.cpp:299:test_authsync_sync_allocates:PASS
+[AuthSync] Synced 9 cards → 1 bytes heap
+
+[TEST] Baseline heap: 240412 bytes
+[TEST] Sync #1 - Free heap: 240412 bytes
+[TEST] Sync #2 - Free heap: 240444 bytes
+[TEST] Sync #3 - Free heap: 240444 bytes
+[TEST] Sync #4 - Free heap: 240444 bytes
+[TEST] Sync #5 - Free heap: 240444 bytes
+[TEST] Final heap: 240444 bytes
+test/test_authsync.cpp:300:test_authsync_no_memory_leak:PASS
+[AuthSync] Synced 9 cards → 1 bytes heap
+
+[TEST] Card count: 9
+[TEST] Memory used: 1 bytes
+[TEST] Expected bytes: 2
+test/test_authsync.cpp:172:test_authsync_memory_size:FAIL: Expected 2 Was 1
+[AuthSync] Synced 9 cards → 1 bytes heap
+[AuthSync] UID: FFFFFFFF -> Hash: 0x7E8D82B5DD10D745
+
+[TEST] Authorization for FFFFFFFF: NO
+test/test_authsync.cpp:302:test_authsync_authorization_check:PASS
+
+[TEST] Initial heap: 240408 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 0 - Free heap: 240036 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 1 - Free heap: 240408 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 2 - Free heap: 240036 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 3 - Free heap: 240408 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 4 - Free heap: 240036 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 5 - Free heap: 240036 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 6 - Free heap: 240188 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 7 - Free heap: 240188 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 8 - Free heap: 239812 bytes
+[AuthSync] Synced 9 cards → 1 bytes heap
+[TEST] Iteration 9 - Free heap: 239824 bytes
+[TEST] Final heap: 240196 bytes
+test/test_authsync.cpp:303:test_authsync_stress:PASS
+
+[TEST] Testing with 3000 cards
+[TEST] Initial heap: 240196 bytes
+[TEST] Card count: 3000
+[TEST] Memory used: 375 bytes
+[TEST] Expected bytes: 375
+[TEST] Heap used for 3000 cards: 440 bytes
+test/test_authsync.cpp:306:test_authsync_3000_cards:PASS
+
+[TEST] Overflow safety - memory used: 25000 bytes
+test/test_authsync.cpp:307:test_authsync_overflow_safety:PASS
+
+-----------------------
+8 Tests 1 Failures 0 Ignored 
+FAIL
+
+========================================
+Test results saved to: /test_results.txt
+========================================
+
+Log file size: 201 bytes
+
+
+=== TEST RESULTS FILE CONTENT ===
+Test Run: 2085 ms since boot
+Free Heap: 291156 bytes
+Chip Model: ESP32-D0WD-V3
+CPU Freq: 240 MHz
+
+
+========================================
+Test run completed at: 6341 ms
+Final Free Heap: 240196 bytes
+
+=== END OF TEST RESULTS ===
+
+
+FIXED
+
+
+--- Terminal on COM5 | 115200 8-N-1
+--- Available filters and text transformations: colorize, debug, default, direct, esp32_exception_decoder, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at https://bit.ly/pio-monitor-filters
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+[CFG] Loaded ssid='Rasmus 2.4 GHz' server='http://192.168.1.32:5000'
+Test results will be saved to: /test_results.txt
+
+========================================
+AuthSync Heap Allocation Tests
+========================================
+
+
+[TEST] Free heap before: 241028 bytes
+[TEST] Free heap after construction: 240968 bytes
+[TEST] Free heap after destruction: 241028 bytes
+test/test_authsync.cpp:286:test_authsync_construction:PASS
+
+[TEST] Free heap before sync: 240968 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Free heap after sync: 239492 bytes
+[TEST] Synced cards: 9
+[TEST] Memory used: 2 bytes
+[TEST] Sync result: SUCCESS
+test/test_authsync.cpp:287:test_authsync_sync_allocates:PASS
+[AuthSync] Synced 9 cards → 2 bytes heap
+
+[TEST] Baseline heap: 240284 bytes
+[TEST] Sync #1 - Free heap: 240316 bytes
+[TEST] Sync #2 - Free heap: 240316 bytes
+[TEST] Sync #3 - Free heap: 240316 bytes
+[TEST] Sync #4 - Free heap: 240308 bytes
+[TEST] Sync #5 - Free heap: 240308 bytes
+[TEST] Final heap: 240308 bytes
+test/test_authsync.cpp:288:test_authsync_no_memory_leak:PASS
+[AuthSync] Synced 9 cards → 2 bytes heap
+
+[TEST] Card count: 9
+[TEST] Memory used: 2 bytes
+[TEST] Expected bytes: 2
+test/test_authsync.cpp:289:test_authsync_memory_size:PASS
+
+[TEST] Initial heap: 239656 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 0 - Free heap: 240480 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 1 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 2 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 3 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 4 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 5 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 6 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 7 - Free heap: 240448 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 8 - Free heap: 240480 bytes
+[AuthSync] Synced 9 cards → 2 bytes heap
+[TEST] Iteration 9 - Free heap: 240448 bytes
+[TEST] Final heap: 240480 bytes
+test/test_authsync.cpp:291:test_authsync_stress:PASS
+
+[TEST] Testing with 3000 cards
+[TEST] Initial heap: 240480 bytes
+[TEST] Card count: 3000
+[TEST] Memory used: 375 bytes
+[TEST] Expected bytes: 375
+[TEST] Heap used for 3000 cards: 452 bytes
+test/test_authsync.cpp:294:test_authsync_3000_cards:PASS
+
+[TEST] Overflow safety - memory used: 25001 bytes
+test/test_authsync.cpp:295:test_authsync_overflow_safety:PASS
+
+-----------------------
+7 Tests 0 Failures 0 Ignored
+OK
+
+========================================
+Test results saved to: /test_results.txt
+========================================
+
+Log file size: 201 bytes
+
+
+=== TEST RESULTS FILE CONTENT ===
+Test Run: 2087 ms since boot
+Free Heap: 291140 bytes
+Chip Model: ESP32-D0WD-V3
+CPU Freq: 240 MHz
+
+
+========================================
+Test run completed at: 5962 ms
+Final Free Heap: 240480 bytes
+
+=== END OF TEST RESULTS ===
+
+
