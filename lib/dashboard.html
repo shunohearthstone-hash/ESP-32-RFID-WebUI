@@ -6,9 +6,15 @@
   <style>
     body { font-family: sans-serif; max-width: 700px; margin: auto; padding: 1em; }
     table { border-collapse: collapse; width: 100%; margin-top: 1em; }
-    th, td { border: 1px solid #ccc; padding: 6px 8px; text-align: left; }
-    button { margin: 4px; padding: 4px 10px; }
-    #status { margin: 1em 0; }
+    th, td { border: 1px solid #9a9595; padding: 6px 8px; text-align: left; }
+    button { margin: 1px; padding: 4px 10px; }
+    #status { margin: 1vw 0; }
+
+    /* UID / Hash layout */
+    .uid-cell { display: flex; flex-direction: column; }
+    .uid-main { font-size: 1em; font-weight: 600; line-height: 1.1; }
+    .hash { font-size: 0.5em; color: #666; margin-top: 4px; word-break: break-all; }
+    #build-info { font-size: 0.8em; color: #999; margin-top: 12px; }
   </style>
 </head>
 <body>
@@ -24,13 +30,13 @@
   </div>
 
   <form id="addForm">
-    <input id="uid" placeholder="Enter UID or scan a card">
+    <label for="uid"></label><input id="uid" placeholder="Enter UID or scan a card">
     <label><input type="checkbox" id="auth" checked> Authorized</label>
     <button type="submit">Add / Update</button>
   </form>
 
   <table id="tbl">
-    <thead><tr><th>UID</th><th>Authorized</th><th>Added</th><th>Actions</th></tr></thead>
+    <thead><tr><th>UID+Hash</th><th>Authorized</th><th>Added</th><th>Actions</th></tr></thead>
     <tbody></tbody>
   </table>
 
@@ -43,11 +49,15 @@
       const body = document.querySelector("#tbl tbody");
       body.innerHTML = "";
       data.forEach(c => {
+        // preserve server-provided `added_at` if present
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${c.uid}</td>
+          <td class="uid-cell">
+            <div class="uid-main">${c.uid}</div>
+            <div class="hash">${c.uid_hash ?? ""}</div>
+          </td>
           <td>${c.authorized ? "✅" : "❌"}</td>
-          <td>${new Date(c.added_at*1000).toLocaleString()}</td>
+          <td>${c.added_at ? new Date(c.added_at*1000).toLocaleString() : ''}</td>
           <td>
             <button onclick="toggleAuth('${c.uid}', ${c.authorized})">Toggle</button>
             <button onclick="del('${c.uid}')">Delete</button>
@@ -62,13 +72,13 @@
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({authorized:!current})
       });
-      loadCards();
+      await loadCards();
     }
 
     async function del(uid) {
       if (!confirm("Delete " + uid + "?")) return;
       await fetch(API + "/" + uid, {method:"DELETE"});
-      loadCards();
+      await loadCards();
     }
 
     document.getElementById("addForm").onsubmit = async e => {
@@ -85,7 +95,7 @@
         body: JSON.stringify({uid, authorized:auth})
       });
       document.getElementById("uid").value = "";
-      loadCards();
+      await loadCards();
     }
 
     function useLastScanned() {
@@ -103,18 +113,23 @@
         headers: {"Content-Type":"application/json"},
         body: JSON.stringify({mode})
       });
-      updateStatus();
+      await updateStatus();
     }
 
     async function updateStatus() {
       const res = await fetch("/api/status");
       const s = await res.json();
-      document.getElementById("last").innerText = s.last_scanned || "none";
-      document.getElementById("mode").innerText = s.enroll_mode || "none";
+      console.debug('[dashboard] /api/status ->', s);
+      // Use server-provided values if present; otherwise show 'none'
+      document.getElementById("last").innerText = s.last_scanned ? s.last_scanned : 'none';
+      document.getElementById("mode").innerText = s.enroll_mode ? s.enroll_mode : 'none';
     }
 
     setInterval(updateStatus, 1000);
     loadCards();
+    // Run immediately so page shows current status without waiting
+    updateStatus();
   </script>
+  <div id="build-info">Dashboard build: 2025-11-30 00:00 UTC</div>
 </body>
 </html>

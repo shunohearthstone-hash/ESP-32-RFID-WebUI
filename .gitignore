@@ -5,7 +5,9 @@
 .vscode/ipch
 .history/
 cards.db
-.code-workspace
+src/ESP-32-RFID-WebUI-edge.code-workspace
+.vscode/settings.json
+
 .md
 .db
 

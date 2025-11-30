@@ -70,15 +70,15 @@ String ConfigManager::readConfigJson() {
     File f = LittleFS.open(CONFIG_FILE, "r");
     if (!f) {
         Serial.println("Config file not found");
-        return String();
+        return {};//string
     }
-    
-    size_t size = f.size();
+
+    const size_t size = f.size();
     String contents;
     contents.reserve(size + 1);
     
     while (f.available()) {
-        contents += (char)f.read();
+        contents += static_cast<char>(f.read());
     }
     
     f.close();

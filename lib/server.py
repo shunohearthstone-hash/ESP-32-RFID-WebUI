@@ -1,8 +1,9 @@
 # server.py
-from flask import Flask, request, jsonify, g, render_template, send_file
+from flask import Flask, request, jsonify, g, render_template, send_file, make_response
 import sqlite3, time, io, os
 import struct
 import re
+import hashlib
 try:
     from flask_cors import CORS
 except Exception:
@@ -12,7 +13,7 @@ except Exception:
 #from pybloom_live import ScalableBloomFilter
 
 DB_PATH = "cards.db"
-BLOOM_PATH = "bloom.bin"
+
 
 app = Flask(__name__, template_folder=".")
 CORS(app)
@@ -75,35 +76,46 @@ def close_db(exc):
     if db: db.close()
 
     
-    # ----------  Tiny sync packet for ESP32 ----------
-@app.route("/api/sync", methods=["GET"])
-def get_sync_packet():
-    db = get_db()
-    # Get max card_id
-    row = db.execute("SELECT COALESCE(MAX(card_id), 0) FROM cards WHERE card_id IS NOT NULL").fetchone()
-    max_id = row[0]
+# ---------- Sync cache (bitset + etag) ----------
+_sync_cache = None
+_sync_etag = None
+_sync_max_id = None
+_sync_bits_len = None
 
-    # Build compact bit array
+def invalidate_sync_cache():
+    global _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+    _sync_cache = None
+    _sync_etag = None
+    _sync_max_id = None
+    _sync_bits_len = None
+
+def build_sync_cache():
+    """Build and cache the compact bit array and its etag."""
+    global _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+    db = get_db()
+    row = db.execute("SELECT COALESCE(MAX(card_id), 0) FROM cards WHERE card_id IS NOT NULL").fetchone()
+    max_id = int(row[0])
     bits = bytearray((max_id + 7) // 8)
     cur = db.execute("SELECT card_id FROM cards WHERE authorized=1 AND deleted_at IS NULL AND card_id IS NOT NULL")
-    for row in cur:
-        idx = row[0]
+    for r in cur:
+        idx = int(r[0])
         if idx >= 0:
             bits[idx // 8] |= (1 << (idx % 8))
+    # compute etag once for this blob
+    etag = hashlib.sha1(bytes(bits)).hexdigest()
+    _sync_cache = bits
+    _sync_etag = etag
+    _sync_max_id = max_id
+    _sync_bits_len = len(bits)
+    return _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
 
-    return jsonify({
-        "max_id": max_id,
-        "bits": bits.hex()       # tiny hex string, e.g. "ff03" for first 11 cards
-    })
+def get_sync_cache():
+    """Return (bits, etag, max_id, bits_len), building cache if needed."""
+    global _sync_cache
+    if _sync_cache is None:
+        return build_sync_cache()
+    return _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
 
-#---- Helpers ----
-def assign_card_id(uid):
-    db = get_db()
-    # Get next ID and increment atomically
-    db.execute("UPDATE counter SET value = value + 1 WHERE name = 'next_card_id'")
-    next_id = db.execute("SELECT value FROM counter WHERE name = 'next_card_id'").fetchone()[0]
-    db.execute("UPDATE cards SET card_id = ? WHERE uid = ? AND (card_id IS NULL OR card_id = 0)", (next_id - 1, uid))
-    db.commit()
 # ---------- API ----------
 @app.route("/api/cards", methods=["GET"])
 def list_cards():
@@ -135,7 +147,7 @@ def add_card():
     """,(uid,auth,now,uid_hash))
     assign_card_id(uid)
     db.commit()
-    
+    invalidate_sync_cache()
     return jsonify({"ok":True,"uid":uid,"hash":uid_hash}),201
 
 @app.route("/api/cards/<uid>", methods=["DELETE"])
@@ -143,7 +155,7 @@ def delete_card(uid):
     db = get_db()
     db.execute("UPDATE cards SET deleted_at=? WHERE uid=?", (int(time.time()), uid))
     db.commit()
-   
+    invalidate_sync_cache()
     return jsonify({"ok":True,"uid":uid})
 
 @app.route("/api/cards/<uid>", methods=["PATCH"])
@@ -155,7 +167,7 @@ def update_card(uid):
     db = get_db()
     db.execute("UPDATE cards SET authorized=? WHERE uid=?", (auth, uid))
     db.commit()
-   
+    invalidate_sync_cache()
     return jsonify({"ok":True,"uid":uid,"authorized":auth})
 
 @app.route("/api/cards/<uid>", methods=["GET"])
@@ -182,6 +194,12 @@ def last_scan():
     if not uid:
         return jsonify({"error": "uid required"}), 400
     last_scanned = uid
+    # Log for diagnostics so UI and server logs show the most recent scanned UID
+    try:
+        import logging
+        logging.getLogger(__name__).info(f"[server] last_scanned updated -> {uid}")
+    except Exception:
+        print(f"[server] last_scanned updated -> {uid}")
     uid_hash = compute_uid_hash(uid)
 
     # If we are in enroll mode, act now:
@@ -199,7 +217,8 @@ def last_scan():
         """,(uid,auth,now,uid_hash))
         assign_card_id(uid)  # Ensure card_id is assigned
         db.commit()
-        
+        invalidate_sync_cache()
+
         enroll_mode = None  # reset after one use
         return jsonify({"ok":True,"enrolled":True,"mode":auth,"uid":uid,"hash":uid_hash})
     return jsonify({"ok":True,"uid":uid,"enrolled":False,"hash":uid_hash})
@@ -218,15 +237,20 @@ def set_enroll_mode():
 @app.route("/api/status", methods=["GET"])
 def status():
     """Report current enroll state and last scanned UID."""
-    return jsonify({
-        "last_scanned": last_scanned,
-        "enroll_mode": enroll_mode
-    })
+    # Return explicit JSON and prevent caching so web UI always sees latest value
+    payload = {"last_scanned": last_scanned if last_scanned is not None else None,
+               "enroll_mode": enroll_mode if enroll_mode is not None else None}
+    resp = make_response(jsonify(payload))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 # ---------- DASHBOARD ----------
 @app.route("/")
 def dashboard():
-    return render_template("dashboard.html")
+    # Serve dashboard with no-cache headers to avoid stale client-side caching
+    resp = make_response(render_template("dashboard.html"))
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    return resp
 
 # In server.py, add validation helper:
 def validate_uid(uid):
@@ -239,5 +263,93 @@ def validate_uid(uid):
         return False, "UID must be hexadecimal"
     return True, None
 
+# ---------- Sync cache (bitset + etag) ----------
+_sync_cache = None
+_sync_etag = None
+_sync_max_id = None
+_sync_bits_len = None
+
+def invalidate_sync_cache():
+    global _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+    _sync_cache = None
+    _sync_etag = None
+    _sync_max_id = None
+    _sync_bits_len = None
+
+def build_sync_cache():
+    """Build and cache the compact bit array and its etag."""
+    global _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+    db = get_db()
+    row = db.execute("SELECT COALESCE(MAX(card_id), 0) FROM cards WHERE card_id IS NOT NULL").fetchone()
+    max_id = int(row[0])
+    bits = bytearray((max_id + 7) // 8)
+    cur = db.execute("SELECT card_id FROM cards WHERE authorized=1 AND deleted_at IS NULL AND card_id IS NOT NULL")
+    for r in cur:
+        idx = int(r[0])
+        if idx >= 0:
+            bits[idx // 8] |= (1 << (idx % 8))
+    # compute etag once for this blob
+    etag = hashlib.sha1(bytes(bits)).hexdigest()
+    _sync_cache = bits
+    _sync_etag = etag
+    _sync_max_id = max_id
+    _sync_bits_len = len(bits)
+    return _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+
+def get_sync_cache():
+    """Return (bits, etag, max_id, bits_len), building cache if needed."""
+    global _sync_cache
+    if _sync_cache is None:
+        return build_sync_cache()
+    return _sync_cache, _sync_etag, _sync_max_id, _sync_bits_len
+
+@app.route("/api/sync", methods=["GET"])
+def get_sync_packet():
+    # Use the cached bitset + etag and support conditional GET
+    bits, etag, max_id, bits_len = get_sync_cache()
+
+    # If client provided If-None-Match and it matches our etag, return 304 Not Modified
+    inm = request.headers.get('If-None-Match')
+    if inm and inm == etag:
+        return ('', 304)
+
+    return jsonify({
+        "max_id": max_id,
+        "bits": bits.hex()
+    }), 200, { 'ETag': etag }
+
+# New lightweight metadata endpoint for cheap checks
+@app.route("/api/sync/meta", methods=["GET"])
+def get_sync_meta():
+    bits, etag, max_id, bits_len = get_sync_cache()
+    return jsonify({
+        "max_id": max_id,
+        "etag": etag,
+        "bits_len": bits_len
+    })
+
+#---- Helpers ----
+def assign_card_id(uid):
+    db = get_db()
+    # Get next ID and increment atomically
+    db.execute("UPDATE counter SET value = value + 1 WHERE name = 'next_card_id'")
+    next_id = db.execute("SELECT value FROM counter WHERE name = 'next_card_id'").fetchone()[0]
+    db.execute("UPDATE cards SET card_id = ? WHERE uid = ? AND (card_id IS NULL OR card_id = 0)", (next_id - 1, uid))
+    db.commit()
+    invalidate_sync_cache()
+
+# Duplicate `/api/cards` endpoints that were inserted accidentally were removed here to avoid
+# Flask assertion errors about overwriting existing endpoint functions. The canonical
+# `/api/cards` handlers are defined earlier in this file and remain unchanged.
+
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    # Diagnostic startup prints to ensure running via `python lib/server.py` is visible
+    import logging, traceback
+    logging.basicConfig(level=logging.DEBUG)
+    print(">>> Starting server.py - launching Flask app on 0.0.0.0:5000", flush=True)
+    try:
+        # run without the reloader to keep all output in the same process
+        app.run(host="0.0.0.0", port=5000, debug=False, use_reloader=False)
+    except Exception as e:
+        print("*** Exception while starting Flask app:", e, flush=True)
+        traceback.print_exc()

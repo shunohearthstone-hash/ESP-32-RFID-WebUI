@@ -1,59 +1,31 @@
-/* Behaviour summary:
- AuthSync maintains two authorization layers:
-  1) Online: If WiFi connected and server_base set, it probes /api/status (cached 5s) then
-     queries /api/cards/<uid>. Successful responses update sorted allow/deny hash vectors.
-  2) Offline fallback: If server unreachable or lookup fails, it binary_searches cached
-     denyHashes_ (deny wins) then allowHashes_. Hashes are 64-bit FNV-1a of normalized UID.
-
- Bitset (authorized_bits) fetched via /api/sync stores per-card_id bits (heap malloc, freed/replaced each sync).
- Hash caches and counts persist in NVS (Preferences) for offline reuse across reboots.
-
- All heap allocations guarded; failure leaves structures null and logic safely returns false.
- Server reachability is throttled; no HTTP attempted when previously marked unreachable.
- Prioritizes fresh server authorization when available,
- with secondary binary search authorization offline. */
-//.............THIS HAS ORDER HAS BEEN REVERSED....................//
- /* Server > Hash: if we have network connectivity,
-        ask the server first for card authorization.
-
-          Connected Example Flow:
-        Scan UID: "04A1B2C3"
-         ↓
-        Hash (FNV-1a 64-bit): 0x8F3A4B2C1D9E7F6A (logged)
-         ↓
-        WiFi OK && server_base set → probe (every 5s) /api/status
-         ↓ (status 200)
-        GET /api/cards/04A1B2C3 → { "exists": true, "card_id": 1234, "authorized": true }
-         ↓
-        addKnownAuth() → hash inserted into allowHashes_ (sorted), removed from deny if present
-         ↓
-        Return: AUTHORIZED (true)
-        (If GET fails or exists=false → fallback to offline hash search sequence)
-    ---   ---   ---   ---   ---   ---   ---   ---   ---   ---   
-        Offline Example Flow:
-        Card scanned: "04A1B2C3"
-         ↓
-        Hash: 0x8f3a4b2c1d9e7f6a
-         ↓
-        Binary search denyHashes_  → Not found
-         ↓
-        Binary search allowHashes_ → Found at index 42
-         ↓
-        Return: AUTHORIZED
-    
-   --------------------------------------------------------------------------*/
-
-
-
-
 #include "AuthSync.h"
-#include <WiFi.h>
+#include <algorithm>
+#include <Arduino.h>
+#include <ArduinoJson.h>
+#include <cstdlib>
+#include <cstring>
+
+#include <HTTPClient.h>
+#include <LittleFS.h>
 #include <limits>
+#include <vector>
+#include <WiFi.h>
+#include <esp_heap_caps.h>
+#include <FS.h>
+
+// Translation-unit local static storage for the authorization bitset.
+// Allocated in BSS to avoid heap usage. Size driven by AuthSync::MAX_SAFE_BYTES.
+// MAX_SAFE_CARDS = 200000 -> bytes = (200000+7)/8 = 25000
+namespace {
+    uint8_t authorized_bits_storage[25000];
+}
+
 /*for each byte in input:
     hash ^= byte        // XOR with current hash
     hash *= prime       // Multiply by FNV prime*/
 // -------------------- hashing (FNV-1a 64-bit) --------------------
-static inline uint64_t fnv1a64(const uint8_t* data, size_t len) {
+
+static uint64_t fnv1a64(const uint8_t* data, size_t len) {
     uint64_t hash = 0xcbf29ce484222325ULL;      // FNV offset basis
     const uint64_t prime = 0x100000001b3ULL;     // FNV prime
     for (size_t i = 0; i < len; ++i) {
@@ -68,13 +40,17 @@ uint64_t AuthSync::hashUid(const String& s) {
     t.trim();
     t.toUpperCase();
     //Normalise hash for whitespace or case differences
-    return fnv1a64(reinterpret_cast<const uint8_t*>(t.c_str()), t.length()); 
+    return fnv1a64(reinterpret_cast<const uint8_t*>(t.c_str()), t.length());
 }
 
-AuthSync::AuthSync(const String& serverBase) : server_base(serverBase) {}
+AuthSync::AuthSync(const String& serverBase) : server_base(serverBase) {
+    // Point to the static storage by default to avoid heap allocations.
+    authorized_bits = authorized_bits_storage;
+}
 
 AuthSync::~AuthSync() {
-    if (authorized_bits) { free(authorized_bits); authorized_bits = nullptr; }
+    // authorized_bits points at static storage — don't free. Reset pointer for safety.
+    authorized_bits = nullptr;
     if (prefsOpen_) {
         prefs_.end();
         prefsOpen_ = false;
@@ -82,17 +58,16 @@ AuthSync::~AuthSync() {
 }
 
 // ---------------- Bitset safety helpers ----------------
-size_t AuthSync::calcBitsetBytes(uint32_t maxId) const {
+size_t AuthSync::calcBitsetBytes(uint32_t maxId) {
     // bits = maxId + 1
     size_t bits = (size_t)maxId + 1;
-    // guard against overflow (practically won't happen for uint32_t)
     if (bits == 0) return 0;
     if (bits > std::numeric_limits<size_t>::max() - 7) return 0;
     return (bits + 7) / 8;
 }
-//Write a byte at index idx in the bitset, return true on success, 
+//Write a byte at index idx in the bitset, return true on success,
 //false when out of bounds or uninitialized
-bool AuthSync::writeByteAt(size_t idx, uint8_t val) {
+bool AuthSync::writeByteAt(size_t idx, uint8_t val) const {
     if (!authorized_bits) return false;
     size_t bytes = calcBitsetBytes(max_card_id);
     if (bytes == 0) return false;
@@ -121,7 +96,7 @@ bool AuthSync::isBitSet(uint32_t id) const {
 }
 //marks a specific card ID as authorized by setting its corresponding bit in the internal bitset.
 //Verify that buffer is allocated and id is within bounds before setting the bit.
-void AuthSync::setBit(uint32_t id) {
+void AuthSync::setBit(uint32_t id) const {
     if (!authorized_bits) return;
     if (id > max_card_id) return;
     size_t idx = (size_t)id >> 3;
@@ -130,7 +105,7 @@ void AuthSync::setBit(uint32_t id) {
 }
 //Reverse of setBit: clears the authorization bit for a specific card ID,
 // marking it as unauthorized. Verify buffer and bounds before clearing.
-void AuthSync::clearBit(uint32_t id) {
+void AuthSync::clearBit(uint32_t id) const {
     if (!authorized_bits) return;
     if (id > max_card_id) return;
     size_t idx = (size_t)id >> 3;
@@ -146,6 +121,10 @@ bool AuthSync::begin() {
     if (prefsOpen_) {
         loadFromNVS();
     }
+    // Try to load a previously saved bitset snapshot from filesystem
+    if (LittleFS.begin()) {
+        loadBitsetFromFS();
+    }
     return syncFromServer();
 }
 
@@ -156,6 +135,10 @@ bool AuthSync::preloadOffline() {
     }
     if (prefsOpen_) {
         loadFromNVS();
+        // Load filesystem snapshot if present
+        if (LittleFS.begin()) {
+            loadBitsetFromFS();
+        }
         return true;
     }
     return false;
@@ -174,12 +157,12 @@ bool AuthSync::isAuthorized(const String& uid) {
     Serial.printf("[AuthSync] UID: %s -> Hash: 0x%016llX\n", uid.c_str(), h);
 
     // Priority 1: Check local cache first (deny takes precedence)
-    bool denied = std::binary_search(denyHashes_.begin(), denyHashes_.end(), h);
+    const bool denied = std::binary_search(denyHashes_.begin(), denyHashes_.end(), h);
     if (denied) {
         Serial.println("[AuthSync] Found in deny cache -> DENIED");
         return false;
     }
-    bool allowed = std::binary_search(allowHashes_.begin(), allowHashes_.end(), h);
+    const bool allowed = std::binary_search(allowHashes_.begin(), allowHashes_.end(), h);
     if (allowed) {
         Serial.println("[AuthSync] Found in allow cache -> AUTHORIZED");
         return true;
@@ -197,7 +180,7 @@ bool AuthSync::isAuthorized(const String& uid) {
             return server_allowed;
         }
     }
-    
+
     // Priority 3: Offline and unknown - deny by default
     Serial.println("[AuthSync] Offline + unknown -> DENIED by default");
     return false;
@@ -280,8 +263,19 @@ bool AuthSync::syncFromServer() {
     HTTPClient http;
     http.setTimeout(2000);  // shorter sync timeout
     http.begin(server_base + "/api/sync");
+    // Send If-None-Match header if we have a saved ETag to allow 304 responses
+    if (last_etag.length()) {
+        http.addHeader("If-None-Match", last_etag);
+    }
     int code = http.GET();
-    
+
+    if (code == 304) {
+        // Not modified — nothing to do. Update last_sync and return success.
+        last_sync = millis();
+        Serial.println("[AuthSync] Sync: 304 Not Modified — skipping update");
+        http.end();
+        return true;
+    }
     if (code != 200) {
         Serial.printf("[AuthSync] Sync failed with code: %d\n", code);
         http.end();
@@ -290,7 +284,7 @@ bool AuthSync::syncFromServer() {
 
     String payload = http.getString();
     http.end();
-    
+
     JsonDocument doc;
     DeserializationError err = deserializeJson(doc, payload);
     if (err) {
@@ -302,35 +296,39 @@ bool AuthSync::syncFromServer() {
     uint32_t new_max = doc["max_id"] | 0;
     String hex = doc["bits"].as<String>();
 
-    // Free any existing authorization bitset and allocate a new
-    // heap buffer sized for new_max card IDs. If allocation or
-    // size calculation fails, reset max_card_id and abort the sync.
-    if (authorized_bits) { free(authorized_bits); authorized_bits = nullptr; }
+    // Save new ETag header from server (if returned)
+    String serverEtag = http.header("ETag");
+    if (serverEtag.length()) {
+        last_etag = serverEtag;
+        if (prefsOpen_) prefs_.putString("bitset_etag", last_etag);
+    }
 
+    // Use the static storage; validate size fits
     size_t bytes = calcBitsetBytes(new_max);
-    if (bytes == 0) {
+    if (bytes == 0 || bytes > MAX_SAFE_BYTES) {
+        Serial.println("[AuthSync] Sync failed: requested bitset too large for static buffer");
         max_card_id = 0;
         return false;
     }
-// Allocate new bitset heap buffer and zero it
-    authorized_bits = (uint8_t*)malloc(bytes);          
-    if (!authorized_bits) {
-        max_card_id = 0;
-        return false;
-    }
-    memset(authorized_bits, 0, bytes);
+    // Zero only the required portion
+    std::fill_n(authorized_bits, bytes, 0);
 
     // Decode the hex bitset payload (two characters per byte) into
     // the newly allocated buffer using the bounds-checked writer.
     for (size_t i = 0; i + 1 < hex.length(); i += 2) {
         String byteStr = hex.substring(i, i + 2);
-        uint8_t v = (uint8_t)strtol(byteStr.c_str(), nullptr, 16);
+        auto v = static_cast<uint8_t>(strtol(byteStr.c_str(), nullptr, 16));
         if (!writeByteAt(i / 2, v)) break;
     }
 
     // Commit the new bitset and record the time of this successful sync.
     max_card_id = new_max;
     last_sync = millis();
+
+    // Persist the bitset snapshot to filesystem for faster boot/offline use
+    if (LittleFS.begin()) {
+        saveBitsetToFS(bytes);
+    }
 
     // Optionally refresh offline allow/deny UID hash lists when the
     // server includes arrays of UIDs. These are normalized, hashed,
@@ -352,7 +350,7 @@ bool AuthSync::syncFromServer() {
 //I don´t really understand std::sort, but this magic incantation calls loadArray
 // 4 times into temporary vectors, which are then sorted with std::sort and de-duplicated with
 //std::unique. Finally, if either vector is non-empty, they are swapped into the class members
-    
+
         loadArray("allow", allowNew);
         loadArray("allow_uids", allowNew);
         loadArray("deny", denyNew);
@@ -367,8 +365,8 @@ bool AuthSync::syncFromServer() {
             allowHashes_.swap(allowNew);
             denyHashes_.swap(denyNew);
             saveToNVS();
-            //It then saves the new vectors to NVS for persistence across reboots. 
-            
+            //It then saves the new vectors to NVS for persistence across reboots.
+
         }
     }
 
@@ -377,17 +375,17 @@ bool AuthSync::syncFromServer() {
     return true;
 }
 
-int AuthSync::getCardIdFromServer(const String& uid) {
+int AuthSync::getCardIdFromServer(const String& uid) const {
     // Perform a one-off lookup for a card's numeric ID given its
     // UID string via /api/cards/<uid>. Returns -1 on any network,
     // HTTP, or parsing failure, or when the card does not exist.
-    if (WiFi.status() != WL_CONNECTED) return -1;
+    if (WiFiClass::status() != WL_CONNECTED) return -1;
 
     HTTPClient http;
     http.setTimeout(5000);  // 5 second timeout
     http.begin(server_base + "/api/cards/" + uid);
     int code = http.GET();
-    
+
     if (code != 200) {
         Serial.printf("[AuthSync] Card lookup failed: %d\n", code);
         http.end();
@@ -396,9 +394,9 @@ int AuthSync::getCardIdFromServer(const String& uid) {
 
     String payload = http.getString();
     http.end();
-    
+
     JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, payload);
+    const DeserializationError err = deserializeJson(doc, payload);
     if (err) {
         Serial.printf("[AuthSync] JSON parse error: %s\n", err.c_str());
         return -1;
@@ -419,7 +417,7 @@ void AuthSync::addKnownAuth(const String& uid, bool allowed) {
     uint64_t h = hashUid(uid);
     // Ensure sorted insert - helper lambda
     auto insert_sorted = [](std::vector<uint64_t>& vec, uint64_t val){
-        auto it = std::lower_bound(vec.begin(), vec.end(), val); 
+        auto it = std::lower_bound(vec.begin(), vec.end(), val);
         if (it == vec.end() || *it != val) vec.insert(it, val);
     };
 
@@ -436,39 +434,129 @@ void AuthSync::addKnownAuth(const String& uid, bool allowed) {
     saveToNVS();
 }
 
-void AuthSync::saveToNVS() {
-    // Persist the current allow/deny hash vectors into NVS. Counts
-    // are stored separately from the raw uint64_t blobs so they can
-    // be reconstructed on the next boot.
-    if (!prefsOpen_) return;
-    // Store counts and raw blobs; guard against empty vectors
-    prefs_.putUInt("allow_n", (uint32_t)allowHashes_.size());
-    prefs_.putUInt("deny_n",  (uint32_t)denyHashes_.size());
-    if (!allowHashes_.empty()) {
-        prefs_.putBytes("allow", allowHashes_.data(), allowHashes_.size() * sizeof(uint64_t));
-    } else {
-        prefs_.remove("allow");
+bool AuthSync::saveAllowDenyToFS() const {
+    if (!LittleFS.begin()) return false;
+    const char *tmp = "/allow_deny.bin.tmp";
+    const char *final = "/allow_deny.bin";
+    File f = LittleFS.open(tmp, FILE_WRITE);
+    if (!f) return false;
+    // Write counts as 32-bit little-endian
+    uint32_t an = (uint32_t)allowHashes_.size();
+    uint32_t dn = (uint32_t)denyHashes_.size();
+    f.write(reinterpret_cast<const uint8_t*>(&an), sizeof(an));
+    f.write(reinterpret_cast<const uint8_t*>(&dn), sizeof(dn));
+    if (an) f.write(reinterpret_cast<const uint8_t*>(allowHashes_.data()), an * sizeof(uint64_t));
+    if (dn) f.write(reinterpret_cast<const uint8_t*>(denyHashes_.data()), dn * sizeof(uint64_t));
+    f.close();
+    LittleFS.remove(final);
+    if (!LittleFS.rename(tmp, final)) {
+        LittleFS.remove(tmp);
+        return false;
     }
-    if (!denyHashes_.empty()) {
-        prefs_.putBytes("deny", denyHashes_.data(), denyHashes_.size() * sizeof(uint64_t));
+    return true;
+}
+
+bool AuthSync::loadAllowDenyFromFS() {
+    if (!LittleFS.begin()) return false;
+    const char *final = "/allow_deny.bin";
+    if (!LittleFS.exists(final)) return false;
+    File f = LittleFS.open(final, FILE_READ);
+    if (!f) return false;
+    if (f.size() < (int)sizeof(uint32_t)*2) { f.close(); return false; }
+    uint32_t an = 0, dn = 0;
+    f.read(reinterpret_cast<uint8_t*>(&an), sizeof(an));
+    f.read(reinterpret_cast<uint8_t*>(&dn), sizeof(dn));
+    // Basic sanity check
+    size_t expected = sizeof(uint32_t)*2 + (size_t)an * sizeof(uint64_t) + (size_t)dn * sizeof(uint64_t);
+    if ((size_t)f.size() < expected) { f.close(); return false; }
+    allowHashes_.assign(an, 0);
+    denyHashes_.assign(dn, 0);
+    if (an) f.read(reinterpret_cast<uint8_t*>(allowHashes_.data()), an * sizeof(uint64_t));
+    if (dn) f.read(reinterpret_cast<uint8_t*>(denyHashes_.data()), dn * sizeof(uint64_t));
+    f.close();
+    // Ensure sorted
+    std::sort(allowHashes_.begin(), allowHashes_.end());
+    std::sort(denyHashes_.begin(), denyHashes_.end());
+    return true;
+}
+
+// Update saveToNVS to call saveAllowDenyToFS()
+void AuthSync::saveToNVS() {
+    if (!prefsOpen_) return;
+    // Persist last_etag only
+    if (last_etag.length()) {
+        prefs_.putString("bitset_etag", last_etag);
     } else {
-        prefs_.remove("deny");
+        prefs_.remove("bitset_etag");
+    }
+    // Persist allow/deny vectors to LittleFS (best-effort)
+    if (!saveAllowDenyToFS()) {
+        Serial.println("[AuthSync] Warning: failed to persist allow/deny to LittleFS");
     }
 }
 
 void AuthSync::loadFromNVS() {
-    // Restore allow/deny hash vectors from NVS into memory and
-    // ensure they are sorted so that binary_search remains valid.
     if (!prefsOpen_) return;
-    uint32_t an = prefs_.getUInt("allow_n", 0);
-    uint32_t dn = prefs_.getUInt("deny_n", 0);
-    allowHashes_.assign(an, 0);
-    denyHashes_.assign(dn, 0);
-    if (an) prefs_.getBytes("allow", allowHashes_.data(), an * sizeof(uint64_t));
-    if (dn) prefs_.getBytes("deny",  denyHashes_.data(),  dn * sizeof(uint64_t));
-    // Ensure sorted for binary_search (in case stored unsorted from older versions)
-    std::sort(allowHashes_.begin(), allowHashes_.end());
-    std::sort(denyHashes_.begin(),  denyHashes_.end());
+    // Restore persisted ETag if present
+    if (prefs_.isKey("bitset_etag")) {
+        last_etag = prefs_.getString("bitset_etag", "");
+    } else {
+        last_etag = "";
+    }
+    // Attempt to load allow/deny from LittleFS; if it fails leave vectors empty
+    loadAllowDenyFromFS();
+}
+
+bool AuthSync::saveBitsetToFS(size_t bytes) {
+    if (bytes == 0) return false;
+    const char *tmp = "/bits.bin.tmp";
+    const char *final = "/bits.bin";
+    File f = LittleFS.open(tmp, FILE_WRITE);
+    if (!f) {
+        Serial.println("[AuthSync] Failed to open tmp file for bitset");
+        return false;
+    }
+    size_t written = f.write(reinterpret_cast<const uint8_t*>(authorized_bits), bytes);
+    f.close();
+    if (written != bytes) {
+        Serial.println("[AuthSync] Failed to write full bitset to tmp file");
+        LittleFS.remove(tmp);
+        return false;
+    }
+    LittleFS.remove(final);
+    if (!LittleFS.rename(tmp, final)) {
+        Serial.println("[AuthSync] Failed to rename bitset tmp file");
+        return false;
+    }
+    if (prefsOpen_) prefs_.putUInt("max_id", max_card_id);
+    Serial.printf("[AuthSync] Saved bitset snapshot %u bytes\n", (unsigned)bytes);
+    return true;
+}
+
+bool AuthSync::loadBitsetFromFS() {
+    const char *final = "/bits.bin";
+    if (!LittleFS.exists(final)) return false;
+    File f = LittleFS.open(final, FILE_READ);
+    if (!f) return false;
+    size_t bytes = f.size();
+    if (bytes == 0 || bytes > MAX_SAFE_BYTES) {
+        f.close();
+        Serial.println("[AuthSync] Bitset file size invalid or too large");
+        return false;
+    }
+    size_t r = f.read(reinterpret_cast<uint8_t*>(authorized_bits), bytes);
+    f.close();
+    if (r != bytes) {
+        Serial.println("[AuthSync] Failed to read full bitset from file");
+        return false;
+    }
+    if (prefsOpen_) {
+        max_card_id = prefs_.getUInt("max_id", (uint32_t)((bytes * 8) - 1));
+    } else {
+        max_card_id = (uint32_t)((bytes * 8) - 1);
+    }
+    Serial.printf("[AuthSync] Loaded bitset snapshot %u bytes, max_id=%u\n", (unsigned)bytes, max_card_id);
+    return true;
 }
 
 #ifdef AUTH_TEST_HOOK
@@ -479,13 +567,7 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
     const size_t SAFE_MAX = 200000UL; // 200,000 cards (~25 KB bitset)
     if (maxCardId > SAFE_MAX) maxCardId = SAFE_MAX;
 
-    // Free any existing bitset
-    if (authorized_bits) {
-        free(authorized_bits);
-        authorized_bits = nullptr;
-    }
-
-    // Update max_card_id and allocate a new bitset (if non-zero)
+    // Update max_card_id and compute required bytes
     max_card_id = (uint32_t)maxCardId;
     size_t nbytes = calcBitsetBytes(max_card_id);
     if (nbytes == 0) {
@@ -493,11 +575,36 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
         return;
     }
 
-    // Defensive malloc — if allocation fails, leave authorized_bits null
-    authorized_bits = (uint8_t*)malloc(nbytes);
-    if (authorized_bits) {
-        memset(authorized_bits, 0, nbytes);
+    if (nbytes > MAX_SAFE_BYTES) {
+        // should not happen due to SAFE_MAX cap, but guard anyway
+        nbytes = MAX_SAFE_BYTES;
     }
+
+    // Point to the static storage and zero the used portion
+    authorized_bits = authorized_bits_storage;
+    // avoid C-style memset (tooling may warn); use std::fill_n
+    std::fill_n(authorized_bits, nbytes, 0);
+}
+#endif
+
+void AuthSync::dumpMemoryStats() const {
+    // Print free heap
+    size_t freeHeap = esp_get_free_heap_size();
+    size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    Serial.printf("[AuthSync] freeHeap=%u largestFreeBlock=%u\n", (unsigned)freeHeap, (unsigned)largest);
+
+    // Hash vectors
+    Serial.printf("[AuthSync] allowHashes entries=%u bytes=%u\n", (unsigned)allowHashes_.size(), (unsigned)(allowHashes_.size() * sizeof(uint64_t)));
+    Serial.printf("[AuthSync] denyHashes  entries=%u bytes=%u\n", (unsigned)denyHashes_.size(), (unsigned)(denyHashes_.size() * sizeof(uint64_t)));
+
+    // Bitset usage
+    size_t bitBytes = calcBitsetBytes(max_card_id);
+    Serial.printf("[AuthSync] max_card_id=%u bitset_bytes=%u MAX_SAFE_BYTES=%u\n", max_card_id, (unsigned)bitBytes, (unsigned)MAX_SAFE_BYTES);
+}
+
+#ifdef AUTH_TEST_HOOK
+void AuthSync::TEST_dumpMemoryStats() const {
+    dumpMemoryStats();
 }
 #endif
 
