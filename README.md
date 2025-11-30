@@ -3,7 +3,9 @@
 A small RFID access control project built around an ESP32 with a SSD1306 display and a lightweight Python server + dashboard.
 
 - When connected it syncs with the server using ETag/If-None-Match semantics for minimum filesystem and network strain.
-- Stores a compact authorization bitset on the device for authorization during network interruption with seamless reconnection. 
+- Stores a compact authorization bitset on the device 
+- Can authorizate during network interruption
+- Seamless reconnection. 
 
 
 
