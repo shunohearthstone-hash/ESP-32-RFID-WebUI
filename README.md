@@ -35,7 +35,7 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
 
 - Compact on-device authorization bitset (per-card_id bits) for fast local checks.
 - Offline allow/deny caches (64-bit FNV-1a hashes) persisted to LittleFS.
-- Server-first lookups when online, with fallback to offline caches. Quite easily reversed to be the other way around.
+- Offline-first lookup, with fallback to server poll if missing. Quite easily reversed to be server-first.
 - Efficient sync: server provides `ETag` for the bitset and `/api/sync/meta` for cheap polling.
 - Simple web UI to list/add/remove/toggle cards and to show last scanned UID.
 - Enrollment mode from dashboard:
