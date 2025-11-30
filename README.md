@@ -6,6 +6,9 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
 - Stores a compact authorization bitset on the device for authorization during network interruption with seamless reconnection. 
 
 
+
+
+
 ---
 
 ## At a glance
@@ -23,7 +26,7 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
 - RFC552
 - SSD1306/SSD1315
 - Nodemcu-32s / esp-wroom
-- 
+
 ## Features
 
 - Compact on-device authorization bitset (per-card_id bits) for fast local checks.
@@ -139,6 +142,20 @@ if ($code -eq '304') { Write-Host 'No change' } else { Write-Host 'Updated, save
 - 
 
 ---
+
+## Demonstration
+
+
+https://github.com/user-attachments/assets/51b65438-537a-40a8-8140-e3754d37154e
+
+
+
+
+https://github.com/user-attachments/assets/3f36b7d2-e4f3-4f7e-a783-35d1270cf8ca
+
+Need to fix updating entrollment status symbol (GR) if DB lost during grant enrollment
+
+
 
 ## Example Flow
 
