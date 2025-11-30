@@ -27,6 +27,8 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
 ## Hardware
 - RFC552
 - SSD1306/SSD1315
+
+  
 ![Screenshot_2025-11-30-06-47-55-914_com google android apps photos-edit~3](https://github.com/user-attachments/assets/719006fe-1de7-43d5-9a56-02d624565d24)
 
 ## Features
@@ -39,7 +41,12 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
 - Enrollment mode from dashboard:
     -Revoke on scan
     -Grant on scan
-<img width="835" height="368" alt="Screenshot 2025-11-29 173940" src="https://github.com/user-attachments/assets/15b8848b-488d-4301-93bb-e20e9700f07b" />
+ 
+
+ 
+ 
+
+
   
 ---
 
