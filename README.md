@@ -157,14 +157,16 @@ Need to fix updating entrollment status symbol (GR) if DB lost during grant enro
 
 
 
-## Example Flow
+## Example Serial Monitor
 
 
 <img width="806" height="163" alt="Screenshot 2025-11-30 021359" src="https://github.com/user-attachments/assets/bdf90070-062e-41ea-aabd-e07c2a587a2f" />
 
 
 <img width="837" height="159" alt="Screenshot 2025-11-30 021343" src="https://github.com/user-attachments/assets/d4030ffa-9f76-45f2-a55a-5200ab9c00ab" />
- Connected Denied Example Flow:                                          Offline Denied Example Flow:
+
+
+## Example Logic Flow   
 
         Card scanned: "04A1B2C3"                                                 Card scanned: "04A1B2C3"
          ↓                                                                                 ↓
