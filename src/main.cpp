@@ -1,7 +1,12 @@
+#include <freertos/FreeRTOS.h>
+#include <freertos/queue.h>
+#include <freertos/task.h>
+#include <freertos/timers.h>
+#include "TimerHandle.h"
 #include "AuthSync.h"
 #include "ConfigManager.h"
 #include "HardwareSerial.h"
-
+#include "HashUtils.h"
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
@@ -12,10 +17,7 @@
 #include <WiFi.h>
 #include <Wire.h>
 #include <cstring>
-#include <freertos/FreeRTOS.h>
-#include <freertos/queue.h>
-#include <freertos/task.h>
-#include <freertos/timers.h>
+
 
 /*
   Runtime flow (high level)
@@ -87,6 +89,9 @@ bool serverReachable = false; // Track server/database reachability
 unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
+// Simple millis-based enroll-mode poll
+static const unsigned long ENROLL_POLL_INTERVAL_MS = 5000;
+static unsigned long lastEnrollPoll = 0;
 
 // Display state tracking (to avoid unnecessary redraws)
 String displayedUID = "";
@@ -109,14 +114,13 @@ struct ScanItem {
   char uid[21];
 };
 static QueueHandle_t scanQueue = nullptr;
-
-// Timer handle for server checks
-static TimerHandle_t serverCheckTimer = nullptr;
-
+//---------------- FreeRTOS timers -----------------
 // AuthSync timer (non-blocking): callback only sets a flag; NetworkTask does
 // the work
-static TimerHandle_t authSyncTimer = nullptr;
 static volatile bool authSyncRequested = false;
+// Display update flag set by timer callback
+static volatile bool displayUpdateRequested = false;
+static void displayTimerCallback(TimerHandle_t xTimer) { (void)xTimer; displayUpdateRequested = true; }
 
 // ----------------- SETUP -----------------
 void setup() {
@@ -148,26 +152,22 @@ void setup() {
       // Create AuthSync early so we can load offline caches from NVS
       if (SERVER_BASE.length() > 0) {
         authSync = new AuthSync(SERVER_BASE);
-        // Load cached allow/deny hashes only; defer network sync until Wi-Fi is
-        // established
-        authSync->preloadOffline();
-        // Dump memory stats for diagnostics
-        authSync->dumpMemoryStats();
-        Serial.println("[AuthSync] Offline cache preloaded (no network yet)");
-      } else {
-        Serial.println("SERVER_BASE empty; offline authorization disabled "
-                       "until configured");
-      }
-    } /* -------------  If failing to flash config.json, run auto-provisioning
+        // AuthSync constructed — delay offline preload until after WiFi
+        // initialization so any network-related state is stable.
+       } else {
+         Serial.println("SERVER_BASE empty; offline authorization disabled "
+                        "until configured");
+       }
+     } /* -------------  If failing to flash config.json, run auto-provisioning
          ------------- Replace  this placeholder with your desired network
-         details to have the device write a default config.json on first boot.
+         details to have the device write config.json on first boot.
          ------------- ------------- ------------- ------------- -------------
          -------------*/
     /*else {
       Serial.println("config.json missing -> auto-provisioning defaults");
       // One-time provisioning: write a default config, then reload.
-      if (ConfigManager::saveConfig("JENSEN-Guest", "Kahlo2025",
-  "http://10.60.84.91:5000")) { if (ConfigManager::loadConfig(SSID, PASS,
+      if (ConfigManager::saveConfig("SSID", "PASSWORD",
+  "http://SERVER_Base")) { if (ConfigManager::loadConfig(SSID, PASS,
   SERVER_BASE)) { Serial.println("Provisioned default config.json");
           Serial.println("SSID: " + SSID);
           Serial.println("PASS: " + PASS);
@@ -201,6 +201,14 @@ void setup() {
              portTICK_PERIOD_MS); // Give some time for LittleFS to stabilize
 
   WiFi.begin(SSID.c_str(), PASS.c_str());
+  // After WiFi initialization, perform the offline preload (loads NVS + FS
+  // caches) so AuthSync can have its cached data ready before any network
+  // sync attempts. Doing this after WiFi.begin keeps the ordering stable.
+  if (authSync) {
+    authSync->preloadOffline();
+    authSync->dumpMemoryStats();
+    Serial.println("[AuthSync] Offline cache preloaded (after WiFi init)");
+  }
   int tries = 0;
   while (WiFiClass::status() != WL_CONNECTED && tries < 80) {
     vTaskDelay(500 / portTICK_PERIOD_MS);
@@ -246,27 +254,43 @@ void setup() {
 
   // Create queue and network task (pin to core 0, lower priority than loop for
   // RFID responsiveness)
+  //Note: this was implemented in a phase where there was no NetworkTask yet
+  // Could probably just be lower priority
   if (!scanQueue) {
     scanQueue = xQueueCreate(10, sizeof(ScanItem));
     if (scanQueue) {
-      xTaskCreatePinnedToCore(NetworkTask, "net_task", 4096, nullptr, 0,
-                              nullptr, 0);
-      Serial.println("[Tasks] Network task started on core 0 (priority 0)");
+      xTaskCreatePinnedToCore(
+        NetworkTask,
+          "net_task",
+          4096,
+          nullptr,
+          0,
+          nullptr,
+          0
+          );
+      Serial.println("[Tasks] NetworkTask started on core 0 (priority 0)");
     } else {
       Serial.println("[Tasks] Failed to create scanQueue");
     }
+  }
+  // Create timers using centralized helpers (Timers.cpp)
+  if (!createDisplayTimer(displayTimerCallback, pdMS_TO_TICKS(500))) {
+    Serial.println("[Tasks] Failed to create/start display timer");
+  } else {
+    Serial.println("[Tasks] Display timer started");
   }
 }
 void loop() {
   // Server reachability check now handled by FreeRTOS timer in NetworkTask
 
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-        String uid = getUidString();    Serial.println("Scanned: " + uid);
+        String uid = getUidString();
+    Serial.println("Scanned: " + uid);
     lastUID = uid;
 
     // Compute hash for display (same method as AuthSync) ----------- FOR
     // DEBUGGING ----
-    String normalized = uid;
+    /*String normalized = uid;
     normalized.trim();
     normalized.toUpperCase();
     uint64_t hash = 0xcbf29ce484222325ULL;
@@ -274,8 +298,9 @@ void loop() {
       constexpr uint64_t prime = 0x100000001b3ULL;
       hash ^= static_cast<uint8_t>(normalized[i]);
       hash *= prime;
-    }
-    lastHash = hash;
+    }*/
+
+    lastHash = HashUtils::hashUid(uid);
     lastAuthorized = authSync ? authSync->isAuthorized(uid) : false;
     updateEnrollStatus(); // Refresh after scan
     updateDisplay();
@@ -296,7 +321,11 @@ void loop() {
 
   // Periodic sync handled by NetworkTask
 
-  if (millis() - lastDisplayUpdate > 500) { // Update display every 500ms
+  // Display updates are requested by a timer; perform the actual update in
+  // loop() context to keep display code single-threaded and safe for the
+  // U8x8 library.
+  if (displayUpdateRequested) {
+    displayUpdateRequested = false;
     updateDisplay();
     lastDisplayUpdate = millis();
   }
@@ -306,6 +335,12 @@ void loop() {
     enrollBlinkState = !enrollBlinkState;
     enrollBlinkMillis = millis();
     drawEnrollIndicator(enrollBlinkState);
+  }
+
+  // Simple millis-based enroll-mode poll
+  if (millis() - lastEnrollPoll > ENROLL_POLL_INTERVAL_MS) {
+    lastEnrollPoll = millis();
+    updateEnrollStatus();
   }
 
 #ifdef AUTH_TEST_HOOK
@@ -380,13 +415,18 @@ void updateDisplay() {
     u8x8.drawString(0, 7, hashStr);
     displayedHash = lastHash;
   }
+
+  // Update enroll indicator if mode changed
+  if (enrollMode != displayedEnrollMode) {
+    drawEnrollIndicator(enrollMode != "none");
+  }
 }
 
 void drawEnrollIndicator(bool on) {
   String currentMode = enrollMode;
   bool currentBlink = on;
 
-  // Only redraw if mode or blink state changed
+  // Only redraw if mode or blink state changed - Full redraws are visible
   if (currentMode != displayedEnrollMode ||
       currentBlink != displayedEnrollBlink) {
     if (enrollMode == "none") {
@@ -445,27 +485,34 @@ void updateEnrollStatus() {
   // and avoids pointless HTTP requests when not provisioned.
   if (WiFi.status() != WL_CONNECTED) {
     enrollMode = "none";
+    serverReachable = false;
     return;
   }
   if (SERVER_BASE.length() == 0) {
     enrollMode = "none";
+    serverReachable = false;
     return;
   }
-  // Escape: rely on periodic reachability check; if server currently
-  // unreachable, keep last mode
-  if (!serverReachable) {
-    return;
-  }
+  // Simple synchronous status poll (called from loop() on a millis timer)
   HTTPClient http;
   http.setTimeout(1500);
   http.begin(String(SERVER_BASE) + "/api/status");
   int code = http.GET();
   if (code == 200) {
+    serverReachable = true;
     String payload = http.getString();
-    JsonDocument doc;
-    deserializeJson(doc, payload);
-    const char *m = doc["enroll_mode"] | "";
-    enrollMode = (m && ::strlen(m)) ? String(m) : "none";
+    DynamicJsonDocument doc(256);
+    DeserializationError err = deserializeJson(doc, payload);
+    if (!err) {
+      const char *m = doc["enroll_mode"] | "";
+      enrollMode = (m && strlen(m) > 0) ? String(m) : "none";
+    } else {
+      // JSON parse failed - clear enroll mode
+      enrollMode = "none";
+    }
+  } else {
+    serverReachable = false;
+    enrollMode = "none";
   }
   http.end();
 }
@@ -475,7 +522,7 @@ void serverCheckTimerCallback(TimerHandle_t xTimer) {
   bool nowReachable = false;
   if (WiFiClass::status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
     HTTPClient http;
-    http.setTimeout(800);
+    http.setTimeout(1500);
     http.begin(SERVER_BASE + "/api/status");
     int code = http.GET();
     http.end();
@@ -484,60 +531,45 @@ void serverCheckTimerCallback(TimerHandle_t xTimer) {
   if (nowReachable != serverReachable) {
     serverReachable = nowReachable;
     Serial.printf("[DB] Reachable=%d\n", serverReachable);
+    // Keep AuthSync's cached probe state in sync with the central timer so
+    // both modules make decisions from the same reachability information.
+    if (authSync) {
+      authSync->setServerProbeResult(nowReachable, millis());
+    }
   }
 }
 
 // Non-blocking timer callback for triggering AuthSync work.
-// Keep this callback tiny: it only sets a flag that NetworkTask will observe.
+
 void authSyncTimerCallback(TimerHandle_t xTimer) { authSyncRequested = true; }
 
 // ----------- Network Task (core 0) ------------
 void NetworkTask(void *pv) {
   Serial.printf("[Tasks] NetworkTask running on core %d\n", xPortGetCoreID());
-  unsigned long lastEnrollPoll = 0;
+
 
   // Create and start the timer (5000ms period, auto-reload)
-  serverCheckTimer = xTimerCreate("ServerCheck",       // Timer name
-                                  pdMS_TO_TICKS(5000), // Period: 5 seconds
-                                  pdTRUE,              // Auto-reload
-                                  nullptr,             // Timer ID (not used)
-                                  serverCheckTimerCallback // Callback function
-  );
-
-  if (serverCheckTimer != nullptr) {
-    xTimerStart(serverCheckTimer, 0);
-    Serial.println("[Tasks] Server check timer started");
+  if (!createServerCheckTimer(serverCheckTimerCallback, pdMS_TO_TICKS(5000))) {
+    Serial.println("[Tasks] Failed to create/start server check timer");
   } else {
-    Serial.println("[Tasks] Failed to create server check timer");
+    Serial.println("[Tasks] Server check timer started");
   }
 
   // Create and start the auth sync timer (non-blocking callback)
-  authSyncTimer = xTimerCreate("AuthSync",           // Timer name
-                               pdMS_TO_TICKS(5000),  // Period: 5 seconds
-                               pdTRUE,               // Auto-reload
-                               nullptr,              // Timer ID (not used)
-                               authSyncTimerCallback // Callback function
-  );
-  if (authSyncTimer != nullptr) {
-    xTimerStart(authSyncTimer, 0);
-    Serial.println("[Tasks] AuthSync timer started");
+  if (!createAuthSyncTimer(authSyncTimerCallback, pdMS_TO_TICKS(5000))) {
+    Serial.println("[Tasks] Failed to create/start auth sync timer");
   } else {
-    Serial.println("[Tasks] Failed to create auth sync timer");
+    Serial.println("[Tasks] AuthSync timer started");
   }
 
   for (;;) {
-
-    // Enroll status poll (500ms) only if reachable
-    if (serverReachable && (millis() - lastEnrollPoll > 1000)) {
-      updateEnrollStatus();
-      lastEnrollPoll = millis();
-    }
 
     // AuthSync periodic sync — triggered by timer flag (non-blocking timer
     // callback)
     if (serverReachable && authSync && authSyncRequested) {
       authSyncRequested = false; // clear flag before doing work
       authSync->update();
+      Serial.println("[Tasks] Auth sync requested");
     }
 
     // Drain scan queue: post last_scan events (limit per cycle)
@@ -554,11 +586,16 @@ void NetworkTask(void *pv) {
            // If server acknowledged enrollment, clear enroll mode and redraw
            // indicator immediately
            if (resp.size() > 0) {
-             bool enrolled = resp["enrolled"] | false;
+             bool enrolled = false;
+             if (resp.containsKey("enrolled")) {
+               enrolled = resp["enrolled"].as<bool>();
+             }
              if (enrolled) {
                enrollMode = "none";
-               // Clear indicator (non-blinking)
-               drawEnrollIndicator(false);
+               // Request main loop to redraw the enroll indicator (display
+               // operations must run from loop context to be thread-safe).
+               displayUpdateRequested = true;
+               Serial.println("[Queue] Enrollment cleared (requested display update)");
              }
            }
          } else {

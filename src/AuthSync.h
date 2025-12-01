@@ -14,6 +14,9 @@ public:
  AuthSync(const String &serverBase);
  ~AuthSync();
  // frees heap memory
+// Maximum number of cards preconfigured at compile time. Adjust to fit device
+// max_card_id checks current use at runtime
+// must not exceed MAX_SAFE_BYTES.
     static constexpr size_t MAX_SAFE_CARDS = 200000UL; // centralized max value
     // Maximum bytes required for the static bitset buffer
     static constexpr size_t MAX_SAFE_BYTES = (MAX_SAFE_CARDS + 7) / 8;
@@ -24,6 +27,10 @@ public:
     bool isAuthorized(const String &uid);
     // Dump runtime memory stats to Serial for diagnostics
     void dumpMemoryStats() const;
+
+    // Keep AuthSync informed of central server probe results (called by NetworkTask)
+    // The timer/NetworkTask calls this to share reachability state and timestamp.
+    void setServerProbeResult(bool ok, unsigned long probeMillis);
 
 #ifdef AUTH_TEST_HOOK
     // Test-only helper: set an artificial max_card_id for overflow/safety tests.
@@ -52,12 +59,12 @@ private:
 
     bool syncFromServer();
     bool getCardAuthFromServer(const String& uid, int &card_id, bool &authorized);
-    int  getCardIdFromServer(const String& uid) const;
+    int getCardIdFromServer(const String& uid) const; //redundant from earlier implementation
     void addKnownAuth(const String& uid, bool allowed);
     static uint64_t hashUid(const String& s);
 
-    void saveToNVS();
-    void loadFromNVS();
+    void saveETagToNVS();
+    void loadETagFromNVS();
     // Persist/load the bitset snapshot to LittleFS (atomic write/rename)
     bool saveBitsetToFS(size_t bytes);
     bool loadBitsetFromFS();

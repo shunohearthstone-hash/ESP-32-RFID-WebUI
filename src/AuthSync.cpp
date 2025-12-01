@@ -1,10 +1,10 @@
 #include "AuthSync.h"
+#include "HashUtils.h"
 #include <algorithm>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <cstdlib>
 #include <cstring>
-
 #include <HTTPClient.h>
 #include <LittleFS.h>
 #include <limits>
@@ -12,6 +12,10 @@
 #include <WiFi.h>
 #include <esp_heap_caps.h>
 #include <FS.h>
+/* Notes: For actual deployment, enroll mode indicator may not be needed
+ Step back server polling delays. This is useful to keep low for testing for
+ responsiveness but is not optimizing to minimize server traffic*/
+
 
 // Translation-unit local static storage for the authorization bitset.
 // Allocated in BSS to avoid heap usage. Size driven by AuthSync::MAX_SAFE_BYTES.
@@ -25,7 +29,7 @@ namespace {
     hash *= prime       // Multiply by FNV prime*/
 // -------------------- hashing (FNV-1a 64-bit) --------------------
 
-static uint64_t fnv1a64(const uint8_t* data, size_t len) {
+/*static uint64_t fnv1a64(const uint8_t* data, size_t len) {
     uint64_t hash = 0xcbf29ce484222325ULL;      // FNV offset basis
     const uint64_t prime = 0x100000001b3ULL;     // FNV prime
     for (size_t i = 0; i < len; ++i) {
@@ -33,18 +37,19 @@ static uint64_t fnv1a64(const uint8_t* data, size_t len) {
         hash *= prime;
     }
     return hash;
-}
+}*/
 
 uint64_t AuthSync::hashUid(const String& s) {
-    String t = s;  // normalize to uppercase, trimmed
+    return HashUtils::hashUid(s);
+  /*  String t = s;  // normalize to uppercase, trimmed
     t.trim();
     t.toUpperCase();
     //Normalise hash for whitespace or case differences
     return fnv1a64(reinterpret_cast<const uint8_t*>(t.c_str()), t.length());
-}
+*/}
 
 AuthSync::AuthSync(const String& serverBase) : server_base(serverBase) {
-    // Point to the static storage by default to avoid heap allocations.
+
     authorized_bits = authorized_bits_storage;
 }
 
@@ -97,8 +102,8 @@ bool AuthSync::isBitSet(uint32_t id) const {
 //marks a specific card ID as authorized by setting its corresponding bit in the internal bitset.
 //Verify that buffer is allocated and id is within bounds before setting the bit.
 void AuthSync::setBit(uint32_t id) const {
-    if (!authorized_bits) return;
-    if (id > max_card_id) return;
+    if (!authorized_bits) return;//buffer is initialized
+    if (id > max_card_id) return;//bounds check
     size_t idx = (size_t)id >> 3;
     uint8_t bit = id & 7;
     authorized_bits[idx] |= (1u << bit);
@@ -106,9 +111,9 @@ void AuthSync::setBit(uint32_t id) const {
 //Reverse of setBit: clears the authorization bit for a specific card ID,
 // marking it as unauthorized. Verify buffer and bounds before clearing.
 void AuthSync::clearBit(uint32_t id) const {
-    if (!authorized_bits) return;
-    if (id > max_card_id) return;
-    size_t idx = (size_t)id >> 3;
+    if (!authorized_bits) return;//buffer is initialized
+    if (id > max_card_id) return;//bounds check
+    size_t idx = (size_t)id >> 3; //divide by 8
     uint8_t bit = id & 7;
     authorized_bits[idx] &= ~(1u << bit);
 }
@@ -119,7 +124,7 @@ bool AuthSync::begin() {
         prefsOpen_ = prefs_.begin("auth", false);
     }
     if (prefsOpen_) {
-        loadFromNVS();
+        loadETagFromNVS();
     }
     // Try to load a previously saved bitset snapshot from filesystem
     if (LittleFS.begin()) {
@@ -128,13 +133,14 @@ bool AuthSync::begin() {
     return syncFromServer();
 }
 
-// Load only offline caches from NVS; skip any network sync
+//     size_t idx = (size_t)id >> 3;
+
 bool AuthSync::preloadOffline() {
     if (!prefsOpen_) {
         prefsOpen_ = prefs_.begin("auth", false);
     }
     if (prefsOpen_) {
-        loadFromNVS();
+        loadETagFromNVS();
         // Load filesystem snapshot if present
         if (LittleFS.begin()) {
             loadBitsetFromFS();
@@ -238,26 +244,82 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
     return true;
 }
 
+
+    // ---------------------------------------------------------------------------
+    // Sync strategy and reachability model
+    //
+    // `syncFromServer()` performs a full authorization bitset sync from the
+    // configured server. To avoid duplicated probes and to centralize network
+    // reachability checks the code follows this policy:
+    //
+    // 1. Bootstrap / initial probe:
+    //    - When the device boots `last_server_probe` will be zero. In that
+    //      case `syncFromServer()` will perform a single short, synchronous
+    //      `/api/status` probe so the initial call (usually from `begin()` in
+    //      setup) can decide whether to attempt the first sync immediately.
+    //
+    // 2. Centralized periodic probes (preferred after boot):
+    //    - After boot a single central timer (implemented in `NetworkTask`)
+    //      performs periodic `/api/status` probes and updates a shared
+    //      reachability flag. That timer also calls `AuthSync::setServerProbeResult`
+    //      so AuthSync uses the same cached result and timestamp. This prevents
+    //      multiple components from issuing redundant status probes.
+    //
+    // 3. Backoff after failures:
+    //    - If a recent probe indicates the server was unreachable, `syncFromServer`
+    //      enforces a short backoff window and skips attempts to avoid hammering
+    //      a dead server.
+    //
+    // 4. ETag and incremental update:
+    //    - When the server returns bitset data the response may include an
+    //      `ETag`. `syncFromServer()` stores that ETag in NVS and uses it in
+    //      future syncs via `If-None-Match` headers to receive HTTP 304 and
+    //      avoid re-downloading unchanged data.
+    //
+    // 5. Allow/deny lists handling:
+    //    - If the server returns explicit `allow`/`deny` arrays they are
+    //      normalized, hashed, de-duplicated and swapped into the in-memory
+    //      vectors. These vectors are persisted (best-effort) by calling
+    //      `saveETagToNVS()` (which persists ETag to NVS and writes allow/deny
+    //      lists to LittleFS).
+    //
+    // The combination of a one-time initial probe, a single central periodic
+    // probe, and a cached probe result minimizes blocking network calls while
+    // keeping all components aligned on server reachability.
+    // ---------------------------------------------------------------------------
 bool AuthSync::syncFromServer() {
-    if (WiFi.status() != WL_CONNECTED || server_base.length() == 0) return false;
+    if (WiFi.status() != WL_CONNECTED || server_base.length() == 0)
+        return false;
     // Backoff: only after a failed probe and not on the very first attempt (last_server_probe != 0)
     if (!server_last_ok && last_server_probe != 0 && (millis() - last_server_probe) < 10000) {
         Serial.println("[AuthSync] Backoff active; skipping sync");
         return false;
     }
 
-    if (millis() - last_server_probe > 5000 || last_server_probe == 0) {
+    // Only perform an inline reachability probe on the very first sync attempt.
+    // After the initial probe we rely on the external server-check timer
+    // (NetworkTask) to update `server_last_ok` and `last_server_probe` so
+    // we don't duplicate probes here.
+    if (last_server_probe == 0) {
+        // First-time probe: do a quick reachability check so the initial
+        // sync (called from setup()) can proceed when no external timer has
+        // yet run.
         last_server_probe = millis();
         HTTPClient ping;
-        ping.setTimeout(300); // faster reachability probe for sync cycle
+        ping.setTimeout(1000); // short probe for initial sync
         ping.begin(server_base + "/api/status");
         int sc = ping.GET();
         ping.end();
         server_last_ok = (sc == 200);
         if (!server_last_ok) {
-            Serial.println("[AuthSync] Sync aborted: server unreachable");
+            Serial.println("[AuthSync] Sync aborted: initial probe failed (server unreachable)");
             return false;
         }
+    } else if (!server_last_ok) {
+        // An external timer (NetworkTask) has already probed and reported the
+        // server as unreachable — skip the sync to avoid redundant network calls.
+        Serial.println("[AuthSync] Sync aborted: server unreachable (cached)");
+        return false;
     }
 
     HTTPClient http;
@@ -347,9 +409,7 @@ bool AuthSync::syncFromServer() {
                 out.push_back(hashUid(uid));
             }
         };
-//I don´t really understand std::sort, but this magic incantation calls loadArray
-// 4 times into temporary vectors, which are then sorted with std::sort and de-duplicated with
-//std::unique. Finally, if either vector is non-empty, they are swapped into the class members
+//std::sort magic incantation
 
         loadArray("allow", allowNew);
         loadArray("allow_uids", allowNew);
@@ -364,7 +424,7 @@ bool AuthSync::syncFromServer() {
         if (!allowNew.empty() || !denyNew.empty()) {
             allowHashes_.swap(allowNew);
             denyHashes_.swap(denyNew);
-            saveToNVS();
+            saveETagToNVS();
             //It then saves the new vectors to NVS for persistence across reboots.
 
         }
@@ -374,8 +434,8 @@ bool AuthSync::syncFromServer() {
     Serial.printf("[AuthSync] Synced max_id=%u (%u bytes heap)\n", max_card_id, bytes);
     return true;
 }
-
-int AuthSync::getCardIdFromServer(const String& uid) const {
+//Old and uncalled, commented out until verified no longer used
+/*int AuthSync::getCardIdFromServer(const String& uid) const {
     // Perform a one-off lookup for a card's numeric ID given its
     // UID string via /api/cards/<uid>. Returns -1 on any network,
     // HTTP, or parsing failure, or when the card does not exist.
@@ -407,13 +467,12 @@ int AuthSync::getCardIdFromServer(const String& uid) const {
     bool exists = doc["exists"] | false;
     if (!exists) return -1;
     return doc["card_id"] | -1;
-}
+}*/
 
 // -------------------- Offline cache helpers --------------------
 void AuthSync::addKnownAuth(const String& uid, bool allowed) {
     // Learn a card's authorization status for offline use by
-    // normalizing + hashing the UID, then inserting that hash
-    // into either the allow or deny cache and persisting to NVS.
+
     uint64_t h = hashUid(uid);
     // Ensure sorted insert - helper lambda
     auto insert_sorted = [](std::vector<uint64_t>& vec, uint64_t val){
@@ -431,7 +490,7 @@ void AuthSync::addKnownAuth(const String& uid, bool allowed) {
         if (it != allowHashes_.end() && *it == h) allowHashes_.erase(it);
         insert_sorted(denyHashes_, h);
     }
-    saveToNVS();
+    saveETagToNVS();
 }
 
 bool AuthSync::saveAllowDenyToFS() const {
@@ -471,6 +530,7 @@ bool AuthSync::loadAllowDenyFromFS() {
     if ((size_t)f.size() < expected) { f.close(); return false; }
     allowHashes_.assign(an, 0);
     denyHashes_.assign(dn, 0);
+    // Read hashes
     if (an) f.read(reinterpret_cast<uint8_t*>(allowHashes_.data()), an * sizeof(uint64_t));
     if (dn) f.read(reinterpret_cast<uint8_t*>(denyHashes_.data()), dn * sizeof(uint64_t));
     f.close();
@@ -481,7 +541,7 @@ bool AuthSync::loadAllowDenyFromFS() {
 }
 
 // Update saveToNVS to call saveAllowDenyToFS()
-void AuthSync::saveToNVS() {
+void AuthSync::saveETagToNVS() {
     if (!prefsOpen_) return;
     // Persist last_etag only
     if (last_etag.length()) {
@@ -489,13 +549,13 @@ void AuthSync::saveToNVS() {
     } else {
         prefs_.remove("bitset_etag");
     }
-    // Persist allow/deny vectors to LittleFS (best-effort)
+    // Persist allow/deny vectors to LittleFS (best-effort - log on failure, no retry)
     if (!saveAllowDenyToFS()) {
         Serial.println("[AuthSync] Warning: failed to persist allow/deny to LittleFS");
     }
 }
 
-void AuthSync::loadFromNVS() {
+void AuthSync::loadETagFromNVS() {
     if (!prefsOpen_) return;
     // Restore persisted ETag if present
     if (prefs_.isKey("bitset_etag")) {
@@ -516,7 +576,8 @@ bool AuthSync::saveBitsetToFS(size_t bytes) {
         Serial.println("[AuthSync] Failed to open tmp file for bitset");
         return false;
     }
-    size_t written = f.write(reinterpret_cast<const uint8_t*>(authorized_bits), bytes);
+    //removed redundant reinterpret_cast<const uint8_t*> from below
+    size_t written = f.write((authorized_bits), bytes);
     f.close();
     if (written != bytes) {
         Serial.println("[AuthSync] Failed to write full bitset to tmp file");
@@ -607,4 +668,7 @@ void AuthSync::TEST_dumpMemoryStats() const {
     dumpMemoryStats();
 }
 #endif
-
+void AuthSync::setServerProbeResult(bool ok, unsigned long probeMillis) {
+    server_last_ok = ok;
+    last_server_probe = probeMillis;
+}
