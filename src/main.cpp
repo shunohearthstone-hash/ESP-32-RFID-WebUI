@@ -7,7 +7,6 @@
 #include "ConfigManager.h"
 #include "HardwareSerial.h"
 #include "HashUtils.h"
-#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <LittleFS.h>
@@ -16,7 +15,9 @@
 #include <U8x8lib.h>
 #include <WiFi.h>
 #include <Wire.h>
+#include <Arduino.h>
 #include <cstring>
+
 
 
 /*
@@ -55,14 +56,19 @@
 
 */
 
-// RFID pins
+/* RFID pins
 #define RST_PIN 17
-#define SS_PIN 5
+#define SS_PIN 5*/
+constexpr uint8_t RST_PIN = 17;
+constexpr uint8_t SS_PIN  = 5;
+static constexpr unsigned long ENROLL_POLL_INTERVAL_MS = 5000;
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 // Display
-U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(/* clock=*/22, /* data=*/21,
-                                       /* reset=*/U8X8_PIN_NONE);
+U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(
+  /* clock=*/22,
+  /* data=*/21,
+  /* reset=*/U8X8_PIN_NONE);
 
 // ----------------- CONFIG -----------------
 // Network and server configuration are moved out of the firmware and
@@ -90,7 +96,7 @@ unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
 // Simple millis-based enroll-mode poll
-static const unsigned long ENROLL_POLL_INTERVAL_MS = 5000;
+
 static unsigned long lastEnrollPoll = 0;
 
 // Display state tracking (to avoid unnecessary redraws)
@@ -480,37 +486,35 @@ DynamicJsonDocument postLastScan(const String &uid) {
   return doc;
 }
 
+
 void updateEnrollStatus() {
   // Skip poll if offline or no server configured. Keeps display consistent
   // and avoids pointless HTTP requests when not provisioned.
-  if (WiFi.status() != WL_CONNECTED) {
-    enrollMode = "none";
-    serverReachable = false;
-    return;
-  }
-  if (SERVER_BASE.length() == 0) {
-    enrollMode = "none";
-    serverReachable = false;
+if (WiFi.status() != WL_CONNECTED || SERVER_BASE.length() == 0) {
+    enrollMode       = "none";
+    serverReachable   = false;
     return;
   }
   // Simple synchronous status poll (called from loop() on a millis timer)
   HTTPClient http;
   http.setTimeout(1500);
-  http.begin(String(SERVER_BASE) + "/api/status");
+  String url = SERVER_BASE + "/api/status";
+  http.begin(url);
   int code = http.GET();
-  if (code == 200) {
+  if (code > 0 && code < 400)
     serverReachable = true;
     String payload = http.getString();
     DynamicJsonDocument doc(256);
     DeserializationError err = deserializeJson(doc, payload);
     if (!err) {
-      const char *m = doc["enroll_mode"] | "";
-      enrollMode = (m && strlen(m) > 0) ? String(m) : "none";
-    } else {
-      // JSON parse failed - clear enroll mode
-      enrollMode = "none";
-    }
-  } else {
+    const char* m = doc["enroll_mode"] | nullptr;
+
+    if (m && strlen(m) > 0) {
+         enrollMode = m;
+       } else {
+         enrollMode = "none";
+        }
+     } else {
     serverReachable = false;
     enrollMode = "none";
   }
@@ -587,7 +591,7 @@ void NetworkTask(void *pv) {
            // indicator immediately
            if (resp.size() > 0) {
              bool enrolled = false;
-             if (resp.containsKey("enrolled")) {
+             if  (resp.containsKey("enrolled")) {
                enrolled = resp["enrolled"].as<bool>();
              }
              if (enrolled) {

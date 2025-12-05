@@ -521,7 +521,7 @@ bool AuthSync::loadAllowDenyFromFS() {
     if (!LittleFS.exists(final)) return false;
     File f = LittleFS.open(final, FILE_READ);
     if (!f) return false;
-    if (f.size() < (int)sizeof(uint32_t)*2) { f.close(); return false; }
+    if (f.size() < static_cast<int>(sizeof(uint32_t))*2) { f.close(); return false; }
     uint32_t an = 0, dn = 0;
     f.read(reinterpret_cast<uint8_t*>(&an), sizeof(an));
     f.read(reinterpret_cast<uint8_t*>(&dn), sizeof(dn));

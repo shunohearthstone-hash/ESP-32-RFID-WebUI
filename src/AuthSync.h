@@ -11,7 +11,7 @@
 
 class AuthSync {
 public:
- AuthSync(const String &serverBase);
+    explicit AuthSync(const String &serverBase);
  ~AuthSync();
  // frees heap memory
 // Maximum number of cards preconfigured at compile time. Adjust to fit device
