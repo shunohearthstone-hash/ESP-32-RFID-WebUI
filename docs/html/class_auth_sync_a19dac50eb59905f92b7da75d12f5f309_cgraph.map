@@ -1,0 +1,20 @@
+<map id="AuthSync::update" name="AuthSync::update">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,107,131,133"/>
+<area shape="rect" id="Node000002" href="$class_auth_sync.html#ab2999f3e828083471d482f9bde0d72f2" title=" " alt="" coords="179,107,361,133"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="131,117,165,119,160,121,132,123"/>
+<area shape="rect" id="Node000003" href="$class_auth_sync.html#aab1e2b7beebdab60e16d9b3a50678efd" title=" " alt="" coords="658,107,837,133"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="333,103,409,92,502,87,596,92,666,103,660,104,595,97,502,92,409,97,334,109"/>
+<area shape="rect" id="Node000004" href="$class_auth_sync.html#afea91831a16e241cc5db5163299fc900" title=" " alt="" coords="435,5,569,32"/>
+<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="295,104,408,48,445,37,440,39,410,53,297,109"/>
+<area shape="rect" id="Node000007" href="$class_auth_sync.html#a4a8d3b99ed3bfb87ab36b2abbcce0594" title=" " alt="" coords="412,107,592,133"/>
+<area shape="poly" id="edge5_Node000002_Node000007" title=" " alt="" coords="361,117,400,120,394,120,362,123"/>
+<area shape="rect" id="Node000008" href="$class_auth_sync.html#a96c599b762bdafa672930dfa6f07ff13" title=" " alt="" coords="409,208,595,235"/>
+<area shape="poly" id="edge6_Node000002_Node000008" title=" " alt="" coords="293,131,346,162,410,194,431,203,425,203,408,198,343,167,292,136"/>
+<area shape="rect" id="Node000010" href="$class_auth_sync.html#a756e144d847c736d9932311d101a8a8f" title=" " alt="" coords="425,157,579,184"/>
+<area shape="poly" id="edge8_Node000002_Node000010" title=" " alt="" coords="335,131,426,153,420,154,334,137"/>
+<area shape="rect" id="Node000005" href="$namespace_hash_utils.html#a3432774829b6752dc346491bc5dd5eec" title=" " alt="" coords="680,5,815,32"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="569,16,667,18,662,19,570,21"/>
+<area shape="rect" id="Node000009" href="$class_auth_sync.html#ad84e54dba300b040ae8655c915d5313f" title=" " alt="" coords="643,208,852,235"/>
+<area shape="poly" id="edge7_Node000008_Node000009" title=" " alt="" coords="596,219,631,221,625,221,596,224"/>
+<area shape="poly" id="edge9_Node000010_Node000003" title=" " alt="" coords="570,154,662,137,667,137,571,159"/>
+</map>
