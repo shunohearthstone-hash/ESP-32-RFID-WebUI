@@ -1,7 +1,0 @@
-<map id="_tcp_write" name="_tcp_write">
-<area shape="rect" id="Node000001" title=" " alt="" coords="351,5,432,32"/>
-<area shape="rect" id="Node000002" href="$class_async_client.html#af4b403851a81a5bf272a0e4a46796044" title="add data to be send (but do not send yet)" alt="" coords="182,5,303,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="333,19,303,21,303,16,338,19"/>
-<area shape="rect" id="Node000003" href="$class_async_client.html#a287fe3b09d815afc3351674a11843ce9" title="add and enqueue data for sending" alt="" coords="5,5,134,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="163,19,134,21,134,16,168,18"/>
-</map>

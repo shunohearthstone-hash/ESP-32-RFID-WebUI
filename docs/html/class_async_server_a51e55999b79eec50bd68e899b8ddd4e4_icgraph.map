@@ -1,7 +1,0 @@
-<map id="AsyncServer::_accept" name="AsyncServer::_accept">
-<area shape="rect" id="Node000001" title=" " alt="" coords="401,5,551,32"/>
-<area shape="rect" id="Node000002" href="$class_async_server.html#a9cfd997e84bd4ba394f3225863536d5e" title=" " alt="" coords="189,5,353,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="383,19,354,21,354,16,388,19"/>
-<area shape="rect" id="Node000003" href="$class_async_server.html#a7e9ce55e4e1d0fab5531bac98ebfb3f9" title=" " alt="" coords="5,5,141,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="171,19,141,21,141,16,176,18"/>
-</map>

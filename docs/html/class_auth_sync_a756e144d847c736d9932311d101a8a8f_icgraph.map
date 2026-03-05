@@ -1,9 +1,0 @@
-<map id="AuthSync::writeByteAt" name="AuthSync::writeByteAt">
-<area shape="rect" id="Node000001" title=" " alt="" coords="409,31,563,57"/>
-<area shape="rect" id="Node000002" href="$class_auth_sync.html#ab2999f3e828083471d482f9bde0d72f2" title=" " alt="" coords="179,31,361,57"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="391,44,362,47,361,41,397,44"/>
-<area shape="rect" id="Node000003" href="$class_auth_sync.html#a6834600967f5b023e9810fc2293d2c51" title=" " alt="" coords="9,5,127,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="160,31,127,29,127,23,166,30"/>
-<area shape="rect" id="Node000004" href="$class_auth_sync.html#a19dac50eb59905f92b7da75d12f5f309" title=" " alt="" coords="5,56,131,83"/>
-<area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="161,58,131,64,130,59,166,57"/>
-</map>

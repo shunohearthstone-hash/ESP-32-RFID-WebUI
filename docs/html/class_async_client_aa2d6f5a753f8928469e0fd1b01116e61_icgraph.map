@@ -1,5 +1,0 @@
-<map id="AsyncClient::send" name="AsyncClient::send">
-<area shape="rect" id="Node000001" title="send data previously add()&#39;ed" alt="" coords="182,5,310,32"/>
-<area shape="rect" id="Node000002" href="$class_async_client.html#a287fe3b09d815afc3351674a11843ce9" title="add and enqueue data for sending" alt="" coords="5,5,134,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="164,19,134,21,134,16,169,18"/>
-</map>

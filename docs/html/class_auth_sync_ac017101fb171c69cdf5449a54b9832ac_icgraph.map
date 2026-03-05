@@ -1,7 +1,0 @@
-<map id="AuthSync::loadBitsetFromFS" name="AuthSync::loadBitsetFromFS">
-<area shape="rect" id="Node000001" title=" " alt="" coords="219,31,410,57"/>
-<area shape="rect" id="Node000002" href="$class_auth_sync.html#a6834600967f5b023e9810fc2293d2c51" title=" " alt="" coords="29,5,147,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="201,32,147,28,147,23,206,31"/>
-<area shape="rect" id="Node000003" href="$class_auth_sync.html#a6b5eb87b981c15a7ed816bd5e133546c" title=" " alt="" coords="5,56,171,83"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="200,57,172,63,171,57,206,56"/>
-</map>

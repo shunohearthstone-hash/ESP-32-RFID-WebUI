@@ -1,7 +1,0 @@
-<map id="_tcp_listen_api" name="_tcp_listen_api">
-<area shape="rect" id="Node000001" title=" " alt="" coords="404,5,512,32"/>
-<area shape="rect" id="Node000002" href="$_async_t_c_p_8cpp.html#aced9ee6e4eb13dc4ef027ded12dce47c" title=" " alt="" coords="189,5,356,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="385,19,357,21,356,16,391,19"/>
-<area shape="rect" id="Node000003" href="$class_async_server.html#a7e9ce55e4e1d0fab5531bac98ebfb3f9" title=" " alt="" coords="5,5,141,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="170,19,141,21,141,16,176,18"/>
-</map>

@@ -1,6 +1,0 @@
-<map id="lwip_event_packet_t" name="lwip_event_packet_t">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,123,146,149"/>
-<area shape="rect" id="Node000002" href="$class_async_client.html" title=" " alt="" coords="29,15,122,41"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="78,56,78,123,73,122,73,58"/>
-<area shape="poly" id="edge2_Node000002_Node000002" title=" " alt="" coords="137,17,145,21,148,28,140,38,123,41,121,37,138,34,143,28,141,25,137,22"/>
-</map>
