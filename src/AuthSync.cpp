@@ -1,10 +1,8 @@
 #include "AuthSync.h"
 #include "HashUtils.h"
 #include <algorithm>
-#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <cstdlib>
-#include <cstring>
 #include <HTTPClient.h>
 #include <LittleFS.h>
 #include <limits>
@@ -65,7 +63,7 @@ AuthSync::~AuthSync() {
 // ---------------- Bitset safety helpers ----------------
 size_t AuthSync::calcBitsetBytes(uint32_t maxId) {
     // bits = maxId + 1
-    size_t bits = (size_t)maxId + 1;
+    const size_t bits = (size_t)maxId + 1;
     if (bits == 0) return 0;
     if (bits > std::numeric_limits<size_t>::max() - 7) return 0;
     return (bits + 7) / 8;
@@ -74,7 +72,7 @@ size_t AuthSync::calcBitsetBytes(uint32_t maxId) {
 //false when out of bounds or uninitialized
 bool AuthSync::writeByteAt(size_t idx, uint8_t val) const {
     if (!authorized_bits) return false;
-    size_t bytes = calcBitsetBytes(max_card_id);
+    const size_t bytes = calcBitsetBytes(max_card_id);
     if (bytes == 0) return false;
     if (idx >= bytes) return false;
     authorized_bits[idx] = val;
@@ -84,7 +82,7 @@ bool AuthSync::writeByteAt(size_t idx, uint8_t val) const {
 //false when out of bounds or uninitialized
 bool AuthSync::readByteAt(size_t idx, uint8_t &out) const {
     if (!authorized_bits) return false;
-    size_t bytes = calcBitsetBytes(max_card_id);
+    const size_t bytes = calcBitsetBytes(max_card_id);
     if (bytes == 0) return false;
     if (idx >= bytes) return false;
     out = authorized_bits[idx];
@@ -95,8 +93,8 @@ bool AuthSync::readByteAt(size_t idx, uint8_t &out) const {
 bool AuthSync::isBitSet(uint32_t id) const {
     if (!authorized_bits) return false;
     if (id > max_card_id) return false;
-    size_t idx = (size_t)id >> 3;
-    uint8_t bit = id & 7;
+    const size_t idx = (size_t)id >> 3;
+    const uint8_t bit = id & 7;
     return ((authorized_bits[idx] >> bit) & 1) != 0;
 }
 //marks a specific card ID as authorized by setting its corresponding bit in the internal bitset.
@@ -104,17 +102,17 @@ bool AuthSync::isBitSet(uint32_t id) const {
 void AuthSync::setBit(uint32_t id) const {
     if (!authorized_bits) return;//buffer is initialized
     if (id > max_card_id) return;//bounds check
-    size_t idx = (size_t)id >> 3;
-    uint8_t bit = id & 7;
-    authorized_bits[idx] |= (1u << bit);
+    const size_t idx = (size_t)id >> 3;
+    const uint8_t bit = id & 7;
+    authorized_bits[idx] |= 1u << bit;
 }
 //Reverse of setBit: clears the authorization bit for a specific card ID,
 // marking it as unauthorized. Verify buffer and bounds before clearing.
 void AuthSync::clearBit(uint32_t id) const {
     if (!authorized_bits) return;//buffer is initialized
     if (id > max_card_id) return;//bounds check
-    size_t idx = (size_t)id >> 3; //divide by 8
-    uint8_t bit = id & 7;
+    const size_t idx = (size_t)id >> 3; //divide by 8
+    const uint8_t bit = id & 7;
     authorized_bits[idx] &= ~(1u << bit);
 }
 
@@ -159,7 +157,7 @@ bool AuthSync::update() {
 
 bool AuthSync::isAuthorized(const String& uid) {
     // Compute and log hash for debugging/offline cache tracking
-    uint64_t h = hashUid(uid);
+    const uint64_t h = hashUid(uid);
     Serial.printf("[AuthSync] UID: %s -> Hash: 0x%016llX\n", uid.c_str(), h);
 
     // Priority 1: Check local cache first (deny takes precedence)
@@ -211,7 +209,7 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
         // A very short timeout risks false negatives on a slow network; tune if needed.
         ping.setTimeout(250); // was 1000ms
         ping.begin(server_base + "/api/status");
-        int sc = ping.GET();
+        const int sc = ping.GET();
         ping.end();
         server_last_ok = (sc == 200);
         if (!server_last_ok) {
@@ -225,7 +223,7 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
     HTTPClient http;
     http.setTimeout(1200); // reduce per-card lookup timeout
     http.begin(server_base + "/api/cards/" + uid);
-    int code = http.GET();
+    const int code = http.GET();
     if (code != 200) {
         http.end();
         return false;
@@ -234,10 +232,10 @@ bool AuthSync::getCardAuthFromServer(const String& uid, int &card_id, bool &auth
     http.end();
 
     JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, payload);
+    const DeserializationError err = deserializeJson(doc, payload);
     if (err) return false;
 
-    bool exists = doc["exists"] | false;
+    const bool exists = doc["exists"] | false;
     if (!exists) return false;
     card_id = doc["card_id"] | -1;
     authorized = doc["authorized"] | false;
@@ -308,7 +306,7 @@ bool AuthSync::syncFromServer() {
         HTTPClient ping;
         ping.setTimeout(1000); // short probe for initial sync
         ping.begin(server_base + "/api/status");
-        int sc = ping.GET();
+        const int sc = ping.GET();
         ping.end();
         server_last_ok = (sc == 200);
         if (!server_last_ok) {
@@ -329,7 +327,7 @@ bool AuthSync::syncFromServer() {
     if (last_etag.length()) {
         http.addHeader("If-None-Match", last_etag);
     }
-    int code = http.GET();
+    const int code = http.GET();
 
     if (code == 304) {
         // Not modified — nothing to do. Update last_sync and return success.
@@ -348,25 +346,25 @@ bool AuthSync::syncFromServer() {
     http.end();
 
     JsonDocument doc;
-    DeserializationError err = deserializeJson(doc, payload);
+    const DeserializationError err = deserializeJson(doc, payload);
     if (err) {
         Serial.printf("[AuthSync] JSON parse error: %s\n", err.c_str());
         return false;
     }
 
     // Extract new maximum card ID and bitset hex from server payload
-    uint32_t new_max = doc["max_id"] | 0;
-    String hex = doc["bits"].as<String>();
+    const uint32_t new_max = doc["max_id"] | 0;
+    const String hex = doc["bits"].as<String>();
 
     // Save new ETag header from server (if returned)
-    String serverEtag = http.header("ETag");
+    const String serverEtag = http.header("ETag");
     if (serverEtag.length()) {
         last_etag = serverEtag;
         if (prefsOpen_) prefs_.putString("bitset_etag", last_etag);
     }
 
     // Use the static storage; validate size fits
-    size_t bytes = calcBitsetBytes(new_max);
+    const size_t bytes = calcBitsetBytes(new_max);
     if (bytes == 0 || bytes > MAX_SAFE_BYTES) {
         Serial.println("[AuthSync] Sync failed: requested bitset too large for static buffer");
         max_card_id = 0;
@@ -379,7 +377,7 @@ bool AuthSync::syncFromServer() {
     // the newly allocated buffer using the bounds-checked writer.
     for (size_t i = 0; i + 1 < hex.length(); i += 2) {
         String byteStr = hex.substring(i, i + 2);
-        auto v = static_cast<uint8_t>(strtol(byteStr.c_str(), nullptr, 16));
+        const auto v = static_cast<uint8_t>(strtol(byteStr.c_str(), nullptr, 16));
         if (!writeByteAt(i / 2, v)) break;
     }
 
@@ -402,7 +400,7 @@ bool AuthSync::syncFromServer() {
 // Extract optional allow/deny UID arrays from the sync JSON, normalize + hash
 // each UID into 64-bit values, and append to the new vectors.
         auto loadArray = [&](const char* key, std::vector<uint64_t>& out){
-            JsonVariant var = doc[key];
+            const JsonVariant var = doc[key];
             if (!var.is<JsonArray>()) return;
             for (JsonVariant v : var.as<JsonArray>()) {
                 String uid = v.as<const char*>();
@@ -473,20 +471,20 @@ bool AuthSync::syncFromServer() {
 void AuthSync::addKnownAuth(const String& uid, bool allowed) {
     // Learn a card's authorization status for offline use by
 
-    uint64_t h = hashUid(uid);
+    const uint64_t h = hashUid(uid);
     // Ensure sorted insert - helper lambda
     auto insert_sorted = [](std::vector<uint64_t>& vec, uint64_t val){
-        auto it = std::lower_bound(vec.begin(), vec.end(), val);
+        const auto it = std::lower_bound(vec.begin(), vec.end(), val);
         if (it == vec.end() || *it != val) vec.insert(it, val);
     };
 
     if (allowed) {
         // Remove from deny if present
-        auto it = std::lower_bound(denyHashes_.begin(), denyHashes_.end(), h);
+        const auto it = std::lower_bound(denyHashes_.begin(), denyHashes_.end(), h);
         if (it != denyHashes_.end() && *it == h) denyHashes_.erase(it);
         insert_sorted(allowHashes_, h);
     } else {
-        auto it = std::lower_bound(allowHashes_.begin(), allowHashes_.end(), h);
+        const auto it = std::lower_bound(allowHashes_.begin(), allowHashes_.end(), h);
         if (it != allowHashes_.end() && *it == h) allowHashes_.erase(it);
         insert_sorted(denyHashes_, h);
     }
@@ -500,8 +498,8 @@ bool AuthSync::saveAllowDenyToFS() const {
     File f = LittleFS.open(tmp, FILE_WRITE);
     if (!f) return false;
     // Write counts as 32-bit little-endian
-    uint32_t an = (uint32_t)allowHashes_.size();
-    uint32_t dn = (uint32_t)denyHashes_.size();
+    const uint32_t an = (uint32_t)allowHashes_.size();
+    const uint32_t dn = (uint32_t)denyHashes_.size();
     f.write(reinterpret_cast<const uint8_t*>(&an), sizeof(an));
     f.write(reinterpret_cast<const uint8_t*>(&dn), sizeof(dn));
     if (an) f.write(reinterpret_cast<const uint8_t*>(allowHashes_.data()), an * sizeof(uint64_t));
@@ -521,12 +519,12 @@ bool AuthSync::loadAllowDenyFromFS() {
     if (!LittleFS.exists(final)) return false;
     File f = LittleFS.open(final, FILE_READ);
     if (!f) return false;
-    if (f.size() < (int)sizeof(uint32_t)*2) { f.close(); return false; }
+    if (f.size() < static_cast<int>(sizeof(uint32_t))*2) { f.close(); return false; }
     uint32_t an = 0, dn = 0;
     f.read(reinterpret_cast<uint8_t*>(&an), sizeof(an));
     f.read(reinterpret_cast<uint8_t*>(&dn), sizeof(dn));
     // Basic sanity check
-    size_t expected = sizeof(uint32_t)*2 + (size_t)an * sizeof(uint64_t) + (size_t)dn * sizeof(uint64_t);
+    const size_t expected = sizeof(uint32_t)*2 + (size_t)an * sizeof(uint64_t) + (size_t)dn * sizeof(uint64_t);
     if ((size_t)f.size() < expected) { f.close(); return false; }
     allowHashes_.assign(an, 0);
     denyHashes_.assign(dn, 0);
@@ -577,7 +575,7 @@ bool AuthSync::saveBitsetToFS(size_t bytes) {
         return false;
     }
     //removed redundant reinterpret_cast<const uint8_t*> from below
-    size_t written = f.write((authorized_bits), bytes);
+    const size_t written = f.write((authorized_bits), bytes);
     f.close();
     if (written != bytes) {
         Serial.println("[AuthSync] Failed to write full bitset to tmp file");
@@ -590,7 +588,7 @@ bool AuthSync::saveBitsetToFS(size_t bytes) {
         return false;
     }
     if (prefsOpen_) prefs_.putUInt("max_id", max_card_id);
-    Serial.printf("[AuthSync] Saved bitset snapshot %u bytes\n", (unsigned)bytes);
+    Serial.printf("[AuthSync] Saved bitset snapshot %u bytes\n", static_cast<unsigned>(bytes));
     return true;
 }
 
@@ -599,13 +597,13 @@ bool AuthSync::loadBitsetFromFS() {
     if (!LittleFS.exists(final)) return false;
     File f = LittleFS.open(final, FILE_READ);
     if (!f) return false;
-    size_t bytes = f.size();
+    const size_t bytes = f.size();
     if (bytes == 0 || bytes > MAX_SAFE_BYTES) {
         f.close();
         Serial.println("[AuthSync] Bitset file size invalid or too large");
         return false;
     }
-    size_t r = f.read(reinterpret_cast<uint8_t*>(authorized_bits), bytes);
+    const size_t r = f.read(reinterpret_cast<uint8_t*>(authorized_bits), bytes);
     f.close();
     if (r != bytes) {
         Serial.println("[AuthSync] Failed to read full bitset from file");
@@ -616,7 +614,7 @@ bool AuthSync::loadBitsetFromFS() {
     } else {
         max_card_id = (uint32_t)((bytes * 8) - 1);
     }
-    Serial.printf("[AuthSync] Loaded bitset snapshot %u bytes, max_id=%u\n", (unsigned)bytes, max_card_id);
+    Serial.printf("[AuthSync] Loaded bitset snapshot %u bytes, max_id=%u\n", static_cast<unsigned>(bytes), max_card_id);
     return true;
 }
 
@@ -650,17 +648,17 @@ void AuthSync::TEST_setMaxCardId(size_t maxCardId) {
 
 void AuthSync::dumpMemoryStats() const {
     // Print free heap
-    size_t freeHeap = esp_get_free_heap_size();
-    size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
-    Serial.printf("[AuthSync] freeHeap=%u largestFreeBlock=%u\n", (unsigned)freeHeap, (unsigned)largest);
+    const size_t freeHeap = esp_get_free_heap_size();
+    const size_t largest = heap_caps_get_largest_free_block(MALLOC_CAP_8BIT);
+    Serial.printf("[AuthSync] freeHeap=%u largestFreeBlock=%u\n", static_cast<unsigned>(freeHeap), static_cast<unsigned>(largest));
 
     // Hash vectors
-    Serial.printf("[AuthSync] allowHashes entries=%u bytes=%u\n", (unsigned)allowHashes_.size(), (unsigned)(allowHashes_.size() * sizeof(uint64_t)));
-    Serial.printf("[AuthSync] denyHashes  entries=%u bytes=%u\n", (unsigned)denyHashes_.size(), (unsigned)(denyHashes_.size() * sizeof(uint64_t)));
+    Serial.printf("[AuthSync] allowHashes entries=%u bytes=%u\n", static_cast<unsigned>(allowHashes_.size()), static_cast<unsigned>(allowHashes_.size() * sizeof(uint64_t)));
+    Serial.printf("[AuthSync] denyHashes  entries=%u bytes=%u\n", static_cast<unsigned>(denyHashes_.size()), static_cast<unsigned>(denyHashes_.size() * sizeof(uint64_t)));
 
     // Bitset usage
-    size_t bitBytes = calcBitsetBytes(max_card_id);
-    Serial.printf("[AuthSync] max_card_id=%u bitset_bytes=%u MAX_SAFE_BYTES=%u\n", max_card_id, (unsigned)bitBytes, (unsigned)MAX_SAFE_BYTES);
+    const size_t bitBytes = calcBitsetBytes(max_card_id);
+    Serial.printf("[AuthSync] max_card_id=%u bitset_bytes=%u MAX_SAFE_BYTES=%u\n", max_card_id, static_cast<unsigned>(bitBytes), static_cast<unsigned>(MAX_SAFE_BYTES));
 }
 
 #ifdef AUTH_TEST_HOOK

@@ -1,13 +1,9 @@
-#include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
-#include <freertos/task.h>
-#include <freertos/timers.h>
 #include "TimerHandle.h"
 #include "AuthSync.h"
 #include "ConfigManager.h"
 #include "HardwareSerial.h"
 #include "HashUtils.h"
-#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <HTTPClient.h>
 #include <LittleFS.h>
@@ -16,7 +12,9 @@
 #include <U8x8lib.h>
 #include <WiFi.h>
 #include <Wire.h>
-#include <cstring>
+
+
+
 
 
 /*
@@ -55,14 +53,19 @@
 
 */
 
-// RFID pins
+/* RFID pins
 #define RST_PIN 17
-#define SS_PIN 5
+#define SS_PIN 5*/
+constexpr uint8_t RST_PIN = 17;
+constexpr uint8_t SS_PIN  = 5;
+static constexpr unsigned long ENROLL_POLL_INTERVAL_MS = 5000;
 MFRC522 rfid(SS_PIN, RST_PIN);
 
 // Display
-U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(/* clock=*/22, /* data=*/21,
-                                       /* reset=*/U8X8_PIN_NONE);
+U8X8_SSD1315_128X64_NONAME_SW_I2C u8x8(
+  /* clock=*/22,
+  /* data=*/21,
+  /* reset=*/U8X8_PIN_NONE);
 
 // ----------------- CONFIG -----------------
 // Network and server configuration are moved out of the firmware and
@@ -90,7 +93,7 @@ unsigned long lastDisplayUpdate = 0;
 unsigned long enrollBlinkMillis = 0;
 bool enrollBlinkState = false;
 // Simple millis-based enroll-mode poll
-static const unsigned long ENROLL_POLL_INTERVAL_MS = 5000;
+
 static unsigned long lastEnrollPoll = 0;
 
 // Display state tracking (to avoid unnecessary redraws)
@@ -101,13 +104,13 @@ String displayedEnrollMode = "";
 bool displayedEnrollBlink = false;
 bool displayedServerReachable = false;
 
-DynamicJsonDocument postLastScan(const String &uid);
 String getUidString();
 void updateEnrollStatus();
 void updateDisplay();
 void drawHeader();
 void drawEnrollIndicator(bool on);
 void NetworkTask(void *pv);
+bool postLastScan(const String &uid, JsonDocument &out);
 
 // Queue for deferred network posting of scanned UIDs
 struct ScanItem {
@@ -154,15 +157,15 @@ void setup() {
         authSync = new AuthSync(SERVER_BASE);
         // AuthSync constructed — delay offline preload until after WiFi
         // initialization so any network-related state is stable.
-       } else {
-         Serial.println("SERVER_BASE empty; offline authorization disabled "
-                        "until configured");
-       }
-     } /* -------------  If failing to flash config.json, run auto-provisioning
-         ------------- Replace  this placeholder with your desired network
-         details to have the device write config.json on first boot.
-         ------------- ------------- ------------- ------------- -------------
-         -------------*/
+      } else {
+        Serial.println("SERVER_BASE empty; offline authorization disabled "
+          "until configured");
+      }
+    } /* -------------  If failing to flash config.json, run auto-provisioning
+        ------------- Replace  this placeholder with your desired network
+        details to have the device write config.json on first boot.
+        ------------- ------------- ------------- ------------- -------------
+        -------------*/
     /*else {
       Serial.println("config.json missing -> auto-provisioning defaults");
       // One-time provisioning: write a default config, then reload.
@@ -201,7 +204,7 @@ void setup() {
              portTICK_PERIOD_MS); // Give some time for LittleFS to stabilize
 
   WiFi.begin(SSID.c_str(), PASS.c_str());
-  // After WiFi initialization, perform the offline preload (loads NVS + FS
+  // After Wi-Fi initialization, perform the offline preload (loads NVS + FS
   // caches) so AuthSync can have its cached data ready before any network
   // sync attempts. Doing this after WiFi.begin keeps the ordering stable.
   if (authSync) {
@@ -243,7 +246,7 @@ void setup() {
       serverReachable = false;
       displayedServerReachable = false;
       Serial.println(
-          "[AuthSync] Using offline cache (sync failed or server unreachable)");
+        "[AuthSync] Using offline cache (sync failed or server unreachable)");
     }
   } else {
     u8x8.drawString(0, 2, "WiFi FAIL");
@@ -258,33 +261,52 @@ void setup() {
   // Could probably just be lower priority
   if (!scanQueue) {
     scanQueue = xQueueCreate(10, sizeof(ScanItem));
+
+
+    //Configure UNICORE flag in platformio.ini if using a single-core ESP32
+#if defined(CONFIG_FREERTOS_UNICORE)
+
+    xTaskCreate(
+      NetworkTask,
+      "net_task",
+      4096,
+      nullptr,
+      tskIDLE_PRIORITY,
+      nullptr);
+
+    Serial.println("[Tasks] NetworkTask started on  IdleTask priority");
+#else
+    xTaskCreatePinnedToCore(
+      NetworkTask,
+      "net_task",
+      4096,
+      nullptr,
+      tskIDLE_PRIORITY,
+      nullptr,
+      0);
+    Serial.println("[Tasks] NetworkTask started on  IdleTask priority");
+#endif
+    // Runtime fallback: query chip info (works on Arduino and esp-idf)
     if (scanQueue) {
-      xTaskCreatePinnedToCore(
-        NetworkTask,
-          "net_task",
-          4096,
-          nullptr,
-          0,
-          nullptr,
-          0
-          );
-      Serial.println("[Tasks] NetworkTask started on core 0 (priority 0)");
+      Serial.println("[Tasks] scanQueue created");
     } else {
       Serial.println("[Tasks] Failed to create scanQueue");
     }
   }
-  // Create timers using centralized helpers (Timers.cpp)
+  // Create timers using centralized helpers (TimerHandle.cpp)
   if (!createDisplayTimer(displayTimerCallback, pdMS_TO_TICKS(500))) {
     Serial.println("[Tasks] Failed to create/start display timer");
   } else {
     Serial.println("[Tasks] Display timer started");
   }
+
 }
+
 void loop() {
   // Server reachability check now handled by FreeRTOS timer in NetworkTask
 
   if (rfid.PICC_IsNewCardPresent() && rfid.PICC_ReadCardSerial()) {
-        String uid = getUidString();
+    String uid = getUidString();
     Serial.println("Scanned: " + uid);
     lastUID = uid;
 
@@ -354,8 +376,9 @@ void loop() {
 #endif
 }
 
-//--------------------------------  helpers  ----------------------------------
-String getUidString() {
+/* --------------------------------  helpers  ---------------------------------- */
+String getUidString()
+{
   String uid = "";
   for (byte i = 0; i < rfid.uid.size; i++) {
     if (rfid.uid.uidByte[i] < 0x10)
@@ -366,7 +389,8 @@ String getUidString() {
   return uid;
 }
 
-void drawHeader() {
+void drawHeader()
+{
   static bool headerDrawn = false;
   if (!headerDrawn) {
     u8x8.clear();
@@ -375,7 +399,8 @@ void drawHeader() {
   }
 }
 
-void updateDisplay() {
+void updateDisplay()
+{
   drawHeader(); // Only draws once
 
   // Update DB status if changed
@@ -403,7 +428,7 @@ void updateDisplay() {
   // Only update auth status if changed
   if (lastAuthorized != displayedAuth) {
     u8x8.drawString(
-        0, 4, (String("Auth:") + (lastAuthorized ? "YES" : "NO ")).c_str());
+      0, 4, (String("Auth:") + (lastAuthorized ? "YES" : "NO ")).c_str());
     displayedAuth = lastAuthorized;
   }
 
@@ -411,7 +436,7 @@ void updateDisplay() {
   if (lastHash != displayedHash) {
     char hashStr[17];
     snprintf(hashStr, sizeof(hashStr), "H:%08X",
-             uint32_t(lastHash & 0xFFFFFFFF));
+             static_cast<uint32_t>(lastHash & 0xFFFFFFFF));
     u8x8.drawString(0, 7, hashStr);
     displayedHash = lastHash;
   }
@@ -422,7 +447,8 @@ void updateDisplay() {
   }
 }
 
-void drawEnrollIndicator(bool on) {
+void drawEnrollIndicator(bool on)
+{
   String currentMode = enrollMode;
   bool currentBlink = on;
 
@@ -441,54 +467,53 @@ void drawEnrollIndicator(bool on) {
   }
 }
 
-DynamicJsonDocument postLastScan(const String &uid) {
+bool postLastScan(const String &uid, JsonDocument &out)
+{
+  out.clear();
   // Guard: if we're offline or server not configured, return empty doc.
   // This avoids making invalid HTTP calls when no server_base is provided
   // (e.g. on first-boot before provisioning /config.json).
   if (WiFi.status() != WL_CONNECTED)
-    return DynamicJsonDocument(0);
+    return false;
   if (SERVER_BASE.length() == 0)
-    return DynamicJsonDocument(0);
+    return false;
   // Escape: if we already marked serverReachable false, skip HTTP entirely
   if (!serverReachable) {
     // Uncomment for verbose logging: Serial.println("[postLastScan] Skipped
     // (serverReachable=false)");
-    return DynamicJsonDocument(0);
+    return false;
   }
   HTTPClient http;
   http.setTimeout(1500); // shorter timeout to avoid long blocking
   http.begin(String(SERVER_BASE) + "/api/last_scan");
   http.addHeader("Content-Type", "application/json");
-  String body = "{\"uid\":\"" + uid + "\"}";
+  String body = R"({"uid":")" + uid + "\"}";
   int code = http.POST(body);
   Serial.printf("[HTTP] POST /api/last_scan -> code=%d, body=%s\n", code, body.c_str());
   if (code < 200 || code >= 300) {
     Serial.printf("postLastScan failed: %d\n", code);
     http.end();
-    return DynamicJsonDocument(0);
+    return false;
   }
   String payload = http.getString();
   Serial.printf("[HTTP] /api/last_scan payload: %s\n", payload.c_str());
   http.end();
-  // Use a small dynamic document for the expected response
-  DynamicJsonDocument doc(512);
-  DeserializationError err = deserializeJson(doc, payload);
+  // Parse into caller-provided document (prefer StaticJsonDocument in caller)
+  DeserializationError err = deserializeJson(out, payload);
   if (err) {
     Serial.printf("postLastScan: JSON parse error: %s\n", err.c_str());
-    return DynamicJsonDocument(0);
+    out.clear();
+    return false;
   }
-  return doc;
+  return true;
 }
 
-void updateEnrollStatus() {
+
+void updateEnrollStatus()
+{
   // Skip poll if offline or no server configured. Keeps display consistent
   // and avoids pointless HTTP requests when not provisioned.
-  if (WiFi.status() != WL_CONNECTED) {
-    enrollMode = "none";
-    serverReachable = false;
-    return;
-  }
-  if (SERVER_BASE.length() == 0) {
+  if (WiFi.status() != WL_CONNECTED || SERVER_BASE.length() == 0) {
     enrollMode = "none";
     serverReachable = false;
     return;
@@ -496,18 +521,20 @@ void updateEnrollStatus() {
   // Simple synchronous status poll (called from loop() on a millis timer)
   HTTPClient http;
   http.setTimeout(1500);
-  http.begin(String(SERVER_BASE) + "/api/status");
+  String url = SERVER_BASE + "/api/status";
+  http.begin(url);
   int code = http.GET();
-  if (code == 200) {
+  if (code > 0 && code < 400)
     serverReachable = true;
-    String payload = http.getString();
-    DynamicJsonDocument doc(256);
-    DeserializationError err = deserializeJson(doc, payload);
-    if (!err) {
-      const char *m = doc["enroll_mode"] | "";
-      enrollMode = (m && strlen(m) > 0) ? String(m) : "none";
+  String payload = http.getString();
+  JsonDocument doc;
+  DeserializationError err = deserializeJson(doc, payload);
+  if (!err) {
+    const char *m = doc["enroll_mode"] | nullptr;
+
+    if (m && strlen(m) > 0) {
+      enrollMode = m;
     } else {
-      // JSON parse failed - clear enroll mode
       enrollMode = "none";
     }
   } else {
@@ -518,7 +545,8 @@ void updateEnrollStatus() {
 }
 
 // Timer callback for server reachability check
-void serverCheckTimerCallback(TimerHandle_t xTimer) {
+void serverCheckTimerCallback(TimerHandle_t xTimer)
+{
   bool nowReachable = false;
   if (WiFiClass::status() == WL_CONNECTED && SERVER_BASE.length() > 0) {
     HTTPClient http;
@@ -541,10 +569,14 @@ void serverCheckTimerCallback(TimerHandle_t xTimer) {
 
 // Non-blocking timer callback for triggering AuthSync work.
 
-void authSyncTimerCallback(TimerHandle_t xTimer) { authSyncRequested = true; }
+void authSyncTimerCallback(TimerHandle_t xTimer)
+{
+  authSyncRequested = true;
+}
 
 // ----------- Network Task (core 0) ------------
-void NetworkTask(void *pv) {
+void NetworkTask(void *pv)
+{
   Serial.printf("[Tasks] NetworkTask running on core %d\n", xPortGetCoreID());
 
 
@@ -563,7 +595,6 @@ void NetworkTask(void *pv) {
   }
 
   for (;;) {
-
     // AuthSync periodic sync — triggered by timer flag (non-blocking timer
     // callback)
     if (serverReachable && authSync && authSyncRequested) {
@@ -575,32 +606,38 @@ void NetworkTask(void *pv) {
     // Drain scan queue: post last_scan events (limit per cycle)
     if (serverReachable && scanQueue) {
       for (int i = 0; i < 3;
-           ++i) { // process up to 3 per loop to avoid starving
+           ++i) {
+        // process up to 3 per loop to avoid starving
         ScanItem item;
         if (xQueueReceive(scanQueue, &item, 0) == pdPASS) {
           // Post scan to server and handle enrollment side-effects returned by
           // the server.
           Serial.printf("[Queue] Posting UID=%s\n", item.uid);
-          DynamicJsonDocument resp = postLastScan(String(item.uid));
-          Serial.printf("[Queue] postLastScan returned size=%u\n", (unsigned)resp.size());
-           // If server acknowledged enrollment, clear enroll mode and redraw
-           // indicator immediately
-           if (resp.size() > 0) {
-             bool enrolled = false;
-             if (resp.containsKey("enrolled")) {
-               enrolled = resp["enrolled"].as<bool>();
-             }
-             if (enrolled) {
-               enrollMode = "none";
-               // Request main loop to redraw the enroll indicator (display
-               // operations must run from loop context to be thread-safe).
-               displayUpdateRequested = true;
-               Serial.println("[Queue] Enrollment cleared (requested display update)");
-             }
-           }
-         } else {
-           break;
-         }
+          JsonDocument resp;
+
+          if (postLastScan(String(item.uid), resp)) {
+            Serial.printf("[Queue] postLastScan returned size=%u\n", static_cast<unsigned>(resp.size()));
+            // If server acknowledged enrollment, clear enroll mode and redraw
+            // indicator immediately
+            if (resp.size() > 0) {
+              bool enrolled = false;
+              if (resp["enrolled"].is<bool>()) {
+                enrolled = resp["enrolled"].as<bool>();
+              }
+              if (enrolled) {
+                enrollMode = "none";
+                // Request main loop to redraw the enroll indicator (display
+                // operations must run from loop context to be thread-safe).
+                displayUpdateRequested = true;
+                Serial.println("[Queue] Enrollment cleared (requested display update)");
+              }
+            }
+          } else {
+            Serial.println("[Queue] postLastScan: no valid response");
+          }
+        } else {
+          break;
+        }
       }
     } else if (!serverReachable && scanQueue) {
       // When offline, keep queued scans for later (do not drop them).

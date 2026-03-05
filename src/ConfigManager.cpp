@@ -105,7 +105,7 @@ void ConfigManager::listFiles() {
     }
     
     while (f) {
-        Serial.printf("  %s (%u bytes)\n", f.name(), (unsigned)f.size());
+        Serial.printf("  %s (%u bytes)\n", f.name(), static_cast<unsigned>(f.size()));
         f = root.openNextFile();
     }
 }

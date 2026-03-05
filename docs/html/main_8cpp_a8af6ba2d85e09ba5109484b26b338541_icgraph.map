@@ -1,0 +1,8 @@
+<map id="drawEnrollIndicator" name="drawEnrollIndicator">
+<area shape="rect" id="Node000001" title=" " alt="" coords="251,5,383,32"/>
+<area shape="rect" id="Node000002" href="$main_8cpp.html#afe461d27b9c48d5921c00d521181f12f" title=" " alt="" coords="5,5,51,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="235,21,51,21,51,16,236,16"/>
+<area shape="rect" id="Node000003" href="$main_8cpp.html#ab7eb3c8c2e8604801ee00f11d3af8c3f" title=" " alt="" coords="99,31,203,57"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="238,31,204,39,203,33,233,31"/>
+<area shape="poly" id="edge3_Node000003_Node000002" title=" " alt="" coords="81,31,51,26,51,21,86,29"/>
+</map>

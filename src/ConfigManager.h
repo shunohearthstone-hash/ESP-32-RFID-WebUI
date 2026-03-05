@@ -1,7 +1,5 @@
-#ifndef CONFIG_MANAGER_H
-#define CONFIG_MANAGER_H
+#pragma once
 
-#include <Arduino.h>
 #include <LittleFS.h>
 
 class ConfigManager {
@@ -22,4 +20,4 @@ private:
     static const char* CONFIG_FILE;
 };
 
-#endif
+

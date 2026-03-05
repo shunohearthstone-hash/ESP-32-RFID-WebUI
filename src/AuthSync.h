@@ -1,17 +1,14 @@
 #pragma once
 
-#include <Arduino.h>
+
 #include <HTTPClient.h>
-
-
 #include <Preferences.h>
-#include <cstring>
 #include <vector>
-#include <memory>
+
 
 class AuthSync {
 public:
- AuthSync(const String &serverBase);
+    explicit AuthSync(const String &serverBase);
  ~AuthSync();
  // frees heap memory
 // Maximum number of cards preconfigured at compile time. Adjust to fit device
@@ -40,8 +37,8 @@ public:
     void TEST_dumpMemoryStats() const;
 #endif
 
-    uint32_t getCardCount() { return max_card_id + 1; }
-    size_t   getMemoryUsed() { return calcBitsetBytes(max_card_id); }
+    uint32_t getCardCount() const { return max_card_id + 1; }
+    size_t   getMemoryUsed() const { return calcBitsetBytes(max_card_id); }
 
 private:
     String   server_base;
@@ -59,7 +56,7 @@ private:
 
     bool syncFromServer();
     bool getCardAuthFromServer(const String& uid, int &card_id, bool &authorized);
-    int getCardIdFromServer(const String& uid) const; //redundant from earlier implementation
+    //int getCardIdFromServer(const String& uid) const; //redundant from earlier implementation
     void addKnownAuth(const String& uid, bool allowed);
     static uint64_t hashUid(const String& s);
 
