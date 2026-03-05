@@ -1,6 +1,6 @@
 #include "TimerHandle.h"
 #include <freertos/FreeRTOS.h>
-#include <Arduino.h>
+
 
 TimerHandle_t serverCheckTimer = nullptr;
 TimerHandle_t authSyncTimer = nullptr;

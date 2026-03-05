@@ -1,0 +1,9 @@
+<map id="AsyncClient::add" name="AsyncClient::add">
+<area shape="rect" id="Node000001" title="add data to be send (but do not send yet)" alt="" coords="5,31,127,57"/>
+<area shape="rect" id="Node000002" href="$_async_t_c_p_8cpp.html#a139d659560ae3b41b186955258551e53" title=" " alt="" coords="202,5,283,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="127,33,189,26,184,28,128,38"/>
+<area shape="rect" id="Node000004" href="$class_async_client.html#a039b989cd1e955709e8b90567045fdbb" title=" " alt="" coords="175,56,310,83"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="127,50,162,57,157,58,127,55"/>
+<area shape="rect" id="Node000003" href="$_async_t_c_p_8cpp.html#af7ec69a9a2424dded82f025dfc754fe5" title=" " alt="" coords="358,5,463,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="283,16,345,18,340,19,284,21"/>
+</map>

@@ -1,0 +1,8 @@
+<map id="AsyncClient::onDisconnect" name="AsyncClient::onDisconnect">
+<area shape="rect" id="Node000001" title=" " alt="" coords="368,31,548,57"/>
+<area shape="rect" id="Node000002" href="$class_async_telnet.html#a77dcd8e31b8bfb8b3082de385c5e7792" title=" " alt="" coords="188,5,320,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="350,31,320,29,320,24,355,31"/>
+<area shape="rect" id="Node000003" href="$class_async_telnet_serial.html#a6cf9d6cc49602ff5ac0ec2af846a0d7a" title=" " alt="" coords="5,23,140,65"/>
+<area shape="poly" id="edge3_Node000001_Node000003" title=" " alt="" coords="352,47,140,47,140,41,353,41"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="170,31,141,37,140,32,175,29"/>
+</map>
