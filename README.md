@@ -7,6 +7,7 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
  - Capable of authorization during network interruption 
 - Seamless reconnection. 
 
+[Doxygen - Documentation](https://shunohearthstone-hash.github.io/ESP-32-RFID-WebUI/html/main_8cpp.html)
 
 
 
@@ -167,40 +168,9 @@ Need to fix updating entrollment status symbol (GR) if DB lost during grant enro
 
 <img width="837" height="159" alt="Screenshot 2025-11-30 021343" src="https://github.com/user-attachments/assets/d4030ffa-9f76-45f2-a55a-5200ab9c00ab" />
 
-
-## Example Logic Flow   
-
-        Card scanned: "04A1B2C3"                                                 Card scanned: "04A1B2C3"
-         ↓                                                                                 ↓
-         Hash: 0x8f3a4b2c1d9e7f6a                                                Hash: 0x8f3a4b2c1d9e7f6a
-         ↓                                                                                 ↓
-         Binary search denyHashes_  → Not found                                  Binary search denyHashes_  → Not found
-         ↓                                                                                 ↓
-         Binary search allowHashes_ → Not found                                  Binary search allowHashes_ → Not found
-          ↓                                                                                ↓
-         Return: Online + Unknown = DENIED                                       Return: Offline + Unknown = DENIED
-          ↓                                                                                ↓
-          Poll API for getcardAuth                                                    Queue to post
-          ↓
-          Post UID to Last Scanned Dashboard
-         Send UID , Hash, state payload
+--- 
+## Example Logic Flow 
 
 
-
-
-          Connected Allow Example Flow:
-
-        Card scanned: "04A1B2C3"
-         ↓
-        UID -> Hash: 0x8f3a4b2c1d9e7f6a
-         ↓
-        Binary search denyHashes_  → Not found
-         ↓
-        Binary search allowHashes_ → Found
-         ↓
-        Return: FOUND IN ALLOW CACHE = ALLOW
-         ↓
-        Post UID to Last Scanned Dashboard
-         ↓
-        Send UID , Hash, state payload
+ <img width="1603" height="1012" alt="Ljus Rfid Chart" src="https://github.com/user-attachments/assets/27d31809-bb93-4918-a294-e5d05094547b" />
 
