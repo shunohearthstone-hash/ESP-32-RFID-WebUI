@@ -1,9 +1,0 @@
-<map id="AuthSync.h" name="AuthSync.h">
-<area shape="rect" id="Node000001" title=" " alt="" coords="137,5,226,32"/>
-<area shape="rect" id="Node000002" title=" " alt="" coords="5,80,107,107"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="162,32,92,74,90,70,157,33"/>
-<area shape="rect" id="Node000003" title=" " alt="" coords="130,80,232,107"/>
-<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="183,31,184,66,179,63,180,34"/>
-<area shape="rect" id="Node000004" title=" " alt="" coords="257,80,314,107"/>
-<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="200,30,258,71,252,71,199,35"/>
-</map>

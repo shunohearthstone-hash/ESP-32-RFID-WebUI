@@ -1,7 +1,0 @@
-<map id="AuthSync::addKnownAuth" name="AuthSync::addKnownAuth">
-<area shape="rect" id="Node000001" title=" " alt="" coords="305,5,479,32"/>
-<area shape="rect" id="Node000002" href="$class_auth_sync.html#aeb16a776532ee69ba1ca44b11904a2c2" title=" " alt="" coords="99,5,257,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="287,19,257,21,257,16,292,19"/>
-<area shape="rect" id="Node000003" href="$main_8cpp.html#afe461d27b9c48d5921c00d521181f12f" title=" " alt="" coords="5,5,51,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="80,20,51,21,51,16,85,18"/>
-</map>

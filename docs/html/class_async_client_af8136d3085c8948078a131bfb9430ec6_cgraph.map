@@ -1,9 +1,0 @@
-<map id="AsyncClient::_s_recv" name="AsyncClient::_s_recv">
-<area shape="rect" id="Node000001" title=" " alt="" coords="5,5,152,32"/>
-<area shape="rect" id="Node000002" href="$class_async_client.html#af9a0368be4f98f49f252b1989b84b5a3" title=" " alt="" coords="200,5,332,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="152,16,187,19,181,19,152,21"/>
-<area shape="rect" id="Node000003" href="$_async_t_c_p_8cpp.html#acfb3f5bacaaabd2c616896510fd1f10b" title=" " alt="" coords="380,5,472,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="333,16,367,19,362,19,333,21"/>
-<area shape="rect" id="Node000004" href="$_async_t_c_p_8cpp.html#ac6939df8a76eab232541be004e935be2" title=" " alt="" coords="520,5,637,32"/>
-<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="473,16,507,19,502,19,473,21"/>
-</map>
