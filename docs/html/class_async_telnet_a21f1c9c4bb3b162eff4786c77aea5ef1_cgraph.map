@@ -1,0 +1,17 @@
+<map id="AsyncTelnet::write" name="AsyncTelnet::write">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,81,135,108"/>
+<area shape="rect" id="Node000002" href="$class_async_client.html#af4b403851a81a5bf272a0e4a46796044" title="add data to be send (but do not send yet)" alt="" coords="186,56,308,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="135,83,173,79,168,81,136,88"/>
+<area shape="rect" id="Node000006" href="$class_async_client.html#aa2d6f5a753f8928469e0fd1b01116e61" title="send data previously add()&#39;ed" alt="" coords="183,107,311,133"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="135,101,170,108,165,109,135,107"/>
+<area shape="rect" id="Node000003" href="$_async_t_c_p_8cpp.html#a139d659560ae3b41b186955258551e53" title=" " alt="" coords="386,5,467,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="296,53,368,35,374,33,298,58"/>
+<area shape="rect" id="Node000005" href="$class_async_client.html#a039b989cd1e955709e8b90567045fdbb" title=" " alt="" coords="359,56,494,83"/>
+<area shape="poly" id="edge4_Node000002_Node000005" title=" " alt="" coords="308,67,346,69,341,70,308,72"/>
+<area shape="rect" id="Node000004" href="$_async_t_c_p_8cpp.html#af7ec69a9a2424dded82f025dfc754fe5" title=" " alt="" coords="546,5,652,32"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="468,16,533,18,528,19,468,21"/>
+<area shape="rect" id="Node000007" href="$_async_t_c_p_8cpp.html#a32a44c4db7c9b6ee6a58167d8e2e5210" title=" " alt="" coords="382,107,471,133"/>
+<area shape="poly" id="edge6_Node000006_Node000007" title=" " alt="" coords="312,117,369,120,364,120,312,123"/>
+<area shape="rect" id="Node000008" href="$_async_t_c_p_8cpp.html#a0ff01c08c6ab13d1532d782b33aec0df" title=" " alt="" coords="542,107,656,133"/>
+<area shape="poly" id="edge7_Node000007_Node000008" title=" " alt="" coords="472,117,530,120,524,120,472,123"/>
+</map>

@@ -2,11 +2,10 @@
 <area shape="rect" id="Node000001" title=" " alt="" coords="616,31,730,57"/>
 <area shape="rect" id="Node000002" href="$class_async_client.html#a758eaca983e03027c99003a5808883f8" title=" " alt="" coords="415,31,568,57"/>
 <area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="598,44,569,47,569,41,604,44"/>
-<area shape="rect" id="Node000003" href="$class_async_client.html#a260e075caca9a58241f2fad754cc412b" title=" " alt="" coords="16,5,162,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="399,41,163,26,163,21,401,36"/>
+<area shape="rect" id="Node000003" href="$class_async_client.html#a260e075caca9a58241f2fad754cc412b" title=" " alt="" coords="221,5,367,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="397,32,367,31,367,25,403,32"/>
 <area shape="rect" id="Node000004" href="$class_async_client.html#aaa5b952568c85d25c32d0dff8ec74794" title=" " alt="" coords="221,56,367,83"/>
 <area shape="poly" id="edge3_Node000002_Node000004" title=" " alt="" coords="403,55,367,63,367,57,397,56"/>
-<area shape="poly" id="edge5_Node000004_Node000003" title=" " alt="" coords="219,52,146,35,146,30,225,51"/>
 <area shape="rect" id="Node000005" href="$class_async_client.html#a19dc40652b5b003288e10529ee169b65" title=" " alt="" coords="5,56,173,83"/>
 <area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="202,69,173,72,173,67,208,69"/>
 </map>

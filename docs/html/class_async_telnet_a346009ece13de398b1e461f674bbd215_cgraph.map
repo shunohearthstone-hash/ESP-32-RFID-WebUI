@@ -1,0 +1,11 @@
+<map id="AsyncTelnet::disconnectClient" name="AsyncTelnet::disconnectClient">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,31,204,57"/>
+<area shape="rect" id="Node000002" href="$class_async_client.html#a4bed4e925817d1b918af2ce43fb0859e" title=" " alt="" coords="252,31,377,57"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="204,41,239,44,234,44,204,47"/>
+<area shape="rect" id="Node000003" href="$class_async_client.html#a0305fe0b036257c03829ceaa5cc43361" title="close connection" alt="" coords="425,31,556,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="377,41,412,44,407,44,378,47"/>
+<area shape="rect" id="Node000004" href="$class_async_client.html#a98ff872bc84919f006f3bb8a249ed36d" title=" " alt="" coords="604,5,743,32"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="556,32,586,31,591,30,557,38"/>
+<area shape="rect" id="Node000013" href="$_async_t_c_p_8cpp.html#acfb3f5bacaaabd2c616896510fd1f10b" title=" " alt="" coords="627,56,720,83"/>
+<area shape="poly" id="edge4_Node000003_Node000013" title=" " alt="" coords="557,50,614,61,609,61,556,56"/>
+</map>

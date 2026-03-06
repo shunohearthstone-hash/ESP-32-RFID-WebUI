@@ -1,7 +1,13 @@
 <map id="_tcp_output" name="_tcp_output">
-<area shape="rect" id="Node000001" title=" " alt="" coords="358,5,447,32"/>
-<area shape="rect" id="Node000002" href="$class_async_client.html#aa2d6f5a753f8928469e0fd1b01116e61" title="send data previously add()&#39;ed" alt="" coords="182,5,310,32"/>
-<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="340,19,311,21,311,16,345,19"/>
-<area shape="rect" id="Node000003" href="$class_async_client.html#a287fe3b09d815afc3351674a11843ce9" title="add and enqueue data for sending" alt="" coords="5,5,134,32"/>
-<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="164,19,134,21,134,16,169,18"/>
+<area shape="rect" id="Node000001" title=" " alt="" coords="536,56,626,83"/>
+<area shape="rect" id="Node000002" href="$class_async_client.html#aa2d6f5a753f8928469e0fd1b01116e61" title="send data previously add()&#39;ed" alt="" coords="360,56,488,83"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="518,69,489,72,489,67,523,69"/>
+<area shape="rect" id="Node000003" href="$class_async_client.html#a287fe3b09d815afc3351674a11843ce9" title="add and enqueue data for sending" alt="" coords="183,31,312,57"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="342,58,312,56,312,51,347,58"/>
+<area shape="rect" id="Node000006" href="$class_async_telnet.html#a21f1c9c4bb3b162eff4786c77aea5ef1" title=" " alt="" coords="183,81,312,108"/>
+<area shape="poly" id="edge5_Node000002_Node000006" title=" " alt="" coords="347,80,313,88,312,83,342,81"/>
+<area shape="rect" id="Node000004" href="$class_async_client.html#a83b5abb57799a9584f8fccce1d31db8c" title="add and enque data for sending" alt="" coords="6,5,134,32"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="165,33,135,30,134,25,170,32"/>
+<area shape="rect" id="Node000005" href="$class_async_telnet.html#a0a0ac25f8d25533aa5482a1715ffe750" title=" " alt="" coords="5,56,135,83"/>
+<area shape="poly" id="edge4_Node000003_Node000005" title=" " alt="" coords="165,56,135,63,134,58,171,55"/>
 </map>

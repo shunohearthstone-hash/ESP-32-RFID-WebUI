@@ -63,7 +63,7 @@ $(function() {
   </div>
 </div>
 <script type="text/javascript">
-$(function(){initNavTree('class_async_telnet.html','',''); });
+$(function(){initNavTree('class_async_telnet.html','','class_async_telnet-members'); });
 </script>
 <div id="container">
 <div id="doc-content">
@@ -158,7 +158,7 @@ Protected Attributes</h2></td></tr>
 <div class="ttc" id="aclass_async_telnet_html_aafe1e0d800fab974e567bddf3f70d696"><div class="ttname"><a href="#aafe1e0d800fab974e567bddf3f70d696">AsyncTelnet::server_port</a></div><div class="ttdeci">uint16_t server_port</div><div class="ttdef"><b>Definition</b> <a href="_async_telnet_8h_source.html#l00047">AsyncTelnet.h:47</a></div></div>
 <div class="ttc" id="aclass_async_telnet_html_add0232d6d1e5fc03e9a0d68b6b66ad8e"><div class="ttname"><a href="#add0232d6d1e5fc03e9a0d68b6b66ad8e">AsyncTelnet::server</a></div><div class="ttdeci">AsyncServer server</div><div class="ttdef"><b>Definition</b> <a href="_async_telnet_8h_source.html#l00043">AsyncTelnet.h:43</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00043">server</a>, and <a class="el" href="_async_telnet_8h_source.html#l00047">server_port</a>.</p>
+<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00047">server_port</a>.</p>
 
 </div>
 </div>
@@ -254,14 +254,7 @@ Protected Attributes</h2></td></tr>
 <div class="ttc" id="aclass_async_telnet_html_adc50e21ea0848a3a45751a7976beefce"><div class="ttname"><a href="#adc50e21ea0848a3a45751a7976beefce">AsyncTelnet::on_incoming_data</a></div><div class="ttdeci">IncomingDataHandler on_incoming_data</div><div class="ttdef"><b>Definition</b> <a href="_async_telnet_8h_source.html#l00051">AsyncTelnet.h:51</a></div></div>
 <div class="ttc" id="aclass_async_telnet_html_af3d3504e902c51ea2f30e8408026d5ea"><div class="ttname"><a href="#af3d3504e902c51ea2f30e8408026d5ea">AsyncTelnet::on_connect</a></div><div class="ttdeci">ConnHandler on_connect</div><div class="ttdef"><b>Definition</b> <a href="_async_telnet_8h_source.html#l00049">AsyncTelnet.h:49</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00052">buffer</a>, <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00881">AsyncClient::close()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01170">AsyncClient::free()</a>, <a class="el" href="_async_telnet_8h_source.html#l00046">ip</a>, <a class="el" href="_async_telnet_8h_source.html#l00049">on_connect</a>, <a class="el" href="_async_telnet_8h_source.html#l00050">on_disconnect</a>, <a class="el" href="_async_telnet_8h_source.html#l00051">on_incoming_data</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00771">AsyncClient::onData()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00756">AsyncClient::onDisconnect()</a>, <a class="el" href="_async_telnet_8h_source.html#l00043">server</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00081">write()</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>.</p>
-<div class="dynheader">
-Here is the call graph for this function:</div>
-<div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_telnet_a77dcd8e31b8bfb8b3082de385c5e7792_cgraph.svg" width="100%" height="596"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
-</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -292,7 +285,12 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">   79</span>}</div>
 <div class="ttc" id="aclass_async_telnet_html_ab212465a52c3fc30a242c732ceb4306b"><div class="ttname"><a href="#ab212465a52c3fc30a242c732ceb4306b">AsyncTelnet::isConnected</a></div><div class="ttdeci">boolean isConnected</div><div class="ttdef"><b>Definition</b> <a href="_async_telnet_8h_source.html#l00045">AsyncTelnet.h:45</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>, and <a class="el" href="_async_telnet_8h_source.html#l00045">isConnected</a>.</p>
+<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>, <a class="el" href="_async_telnet_8h_source.html#l00045">isConnected</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00119">AsyncClient::stop()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_telnet_a346009ece13de398b1e461f674bbd215_cgraph.svg" width="100%" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
 
 </div>
 </div>
@@ -379,8 +377,6 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">   97</span>    <a class="code hl_variable" href="#af3d3504e902c51ea2f30e8408026d5ea">on_connect</a> = callbackFunc;</div>
 <div class="line"><span class="lineno">   98</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00049">on_connect</a>.</p>
-
 </div>
 </div>
 <a id="adc189dac8cb5ee43d734605e6ac612b4" name="adc189dac8cb5ee43d734605e6ac612b4"></a>
@@ -403,8 +399,6 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">  101</span>    <a class="code hl_variable" href="#a80513917d8fdece06323baf721ba5058">on_disconnect</a> = callbackFunc;</div>
 <div class="line"><span class="lineno">  102</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00050">on_disconnect</a>.</p>
-
 </div>
 </div>
 <a id="a2d1c0929b89740c444f94b8bf5202620" name="a2d1c0929b89740c444f94b8bf5202620"></a>
@@ -451,8 +445,6 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">   69</span>    <a class="code hl_variable" href="#add0232d6d1e5fc03e9a0d68b6b66ad8e">server</a>.end();</div>
 <div class="line"><span class="lineno">   70</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00043">server</a>.</p>
-
 </div>
 </div>
 <a id="a0a0ac25f8d25533aa5482a1715ffe750" name="a0a0ac25f8d25533aa5482a1715ffe750"></a>
@@ -478,13 +470,11 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">   85</span>    <span class="keywordflow">return</span> <a class="code hl_variable" href="#a5a57f5845f1aade649185455441c7b3a">client</a>-&gt;write(data, strlen(data));</div>
 <div class="line"><span class="lineno">   86</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, and <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>.</p>
+<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01180">AsyncClient::write()</a>.</p>
 <div class="dynheader">
-Here is the caller graph for this function:</div>
+Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_telnet_a0a0ac25f8d25533aa5482a1715ffe750_icgraph.svg" width="503" height="71"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_telnet_a0a0ac25f8d25533aa5482a1715ffe750_cgraph.svg" width="100%" height="404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -522,11 +512,16 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">   93</span>    <span class="keywordflow">return</span> will_send;</div>
 <div class="line"><span class="lineno">   94</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8cpp_source.html#l00903">AsyncClient::add()</a>, <a class="el" href="_async_telnet_8h_source.html#l00044">client</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l00920">AsyncClient::send()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_telnet_a21f1c9c4bb3b162eff4786c77aea5ef1_cgraph.svg" width="662" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Field Documentation</h2>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a53969c1f70dd63ef88373e7dd514ffd5" name="a53969c1f70dd63ef88373e7dd514ffd5"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a53969c1f70dd63ef88373e7dd514ffd5">&#9670;&#160;</a></span>buffer</h2>
 
@@ -548,8 +543,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00052">52</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>.</p>
 
 </div>
 </div>
@@ -575,7 +568,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00044">44</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>, <a class="el" href="_async_telnet_8cpp_source.html#l00076">disconnectClient()</a>, <a class="el" href="_async_telnet_8cpp_source.html#l00081">write()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00088">write()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00076">disconnectClient()</a>, <a class="el" href="_async_telnet_8cpp_source.html#l00081">write()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00088">write()</a>.</p>
 
 </div>
 </div>
@@ -600,8 +593,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00046">46</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, and <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>.</p>
 
 </div>
 </div>
@@ -653,8 +644,6 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00049">49</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00096">onConnect()</a>.</p>
-
 </div>
 </div>
 <a id="a80513917d8fdece06323baf721ba5058" name="a80513917d8fdece06323baf721ba5058"></a>
@@ -678,8 +667,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00050">50</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00100">onDisconnect()</a>.</p>
 
 </div>
 </div>
@@ -705,7 +692,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00051">51</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00104">onIncomingData()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00104">onIncomingData()</a>.</p>
 
 </div>
 </div>
@@ -730,8 +717,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_async_telnet_8h_source.html#l00043">43</a> of file <a class="el" href="_async_telnet_8h_source.html">AsyncTelnet.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_async_telnet_8cpp_source.html#l00004">AsyncTelnet()</a>, <a class="el" href="_async_telnet_8cpp_source.html#l00008">begin()</a>, <a class="el" href="_async_telnet_serial_8cpp_source.html#l00007">AsyncTelnetSerial::begin()</a>, and <a class="el" href="_async_telnet_8cpp_source.html#l00068">stop()</a>.</p>
 
 </div>
 </div>

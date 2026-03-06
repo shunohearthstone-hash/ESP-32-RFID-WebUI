@@ -115,7 +115,7 @@ Include dependency graph for main.cpp:</div>
 <p><a href="main_8cpp_source.html">Go to the source code of this file.</a></p>
 <table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-nested-classes" class="groupheader"><a id="nested-classes" name="nested-classes"></a>
-Data Structures</h2></td></tr>
+Classes</h2></td></tr>
 <tr class="memitem:ScanItem" id="r_ScanItem"><td class="memItemLeft">struct &#160;</td><td class="memItemRight"><a class="el" href="struct_scan_item.html">ScanItem</a></td></tr>
 </table><table class="memberdecls">
 <tr class="heading"><td colspan="2"><h2 id="header-func-members" class="groupheader"><a id="func-members" name="func-members"></a>
@@ -481,11 +481,11 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="astruct_scan_item_html"><div class="ttname"><a href="struct_scan_item.html">ScanItem</a></div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00116">main.cpp:116</a></div></div>
 <div class="ttc" id="astruct_scan_item_html_a2f70ee7a513d6d67d7781056d8d3e6b8"><div class="ttname"><a href="struct_scan_item.html#a2f70ee7a513d6d67d7781056d8d3e6b8">ScanItem::uid</a></div><div class="ttdeci">char uid[21]</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00117">main.cpp:117</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00125">displayUpdateRequested</a>, <a class="el" href="main_8cpp_source.html#l00450">drawEnrollIndicator()</a>, <a class="el" href="main_8cpp_source.html#l00061">ENROLL_POLL_INTERVAL_MS</a>, <a class="el" href="main_8cpp_source.html#l00093">enrollBlinkMillis</a>, <a class="el" href="main_8cpp_source.html#l00094">enrollBlinkState</a>, <a class="el" href="main_8cpp_source.html#l00088">enrollMode</a>, <a class="el" href="main_8cpp_source.html#l00380">getUidString()</a>, <a class="el" href="_hash_utils_8cpp_source.html#l00018">HashUtils::hashUid()</a>, <a class="el" href="main_8cpp_source.html#l00089">lastAuthorized</a>, <a class="el" href="main_8cpp_source.html#l00092">lastDisplayUpdate</a>, <a class="el" href="main_8cpp_source.html#l00097">lastEnrollPoll</a>, <a class="el" href="main_8cpp_source.html#l00090">lastHash</a>, <a class="el" href="main_8cpp_source.html#l00087">lastUID</a>, <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00117">ScanItem::uid</a>, <a class="el" href="main_8cpp_source.html#l00402">updateDisplay()</a>, and <a class="el" href="main_8cpp_source.html#l00512">updateEnrollStatus()</a>.</p>
+<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00125">displayUpdateRequested</a>, <a class="el" href="main_8cpp_source.html#l00450">drawEnrollIndicator()</a>, <a class="el" href="main_8cpp_source.html#l00061">ENROLL_POLL_INTERVAL_MS</a>, <a class="el" href="main_8cpp_source.html#l00093">enrollBlinkMillis</a>, <a class="el" href="main_8cpp_source.html#l00094">enrollBlinkState</a>, <a class="el" href="main_8cpp_source.html#l00088">enrollMode</a>, <a class="el" href="main_8cpp_source.html#l00380">getUidString()</a>, <a class="el" href="_hash_utils_8cpp_source.html#l00018">HashUtils::hashUid()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00158">AuthSync::isAuthorized()</a>, <a class="el" href="main_8cpp_source.html#l00089">lastAuthorized</a>, <a class="el" href="main_8cpp_source.html#l00092">lastDisplayUpdate</a>, <a class="el" href="main_8cpp_source.html#l00097">lastEnrollPoll</a>, <a class="el" href="main_8cpp_source.html#l00090">lastHash</a>, <a class="el" href="main_8cpp_source.html#l00087">lastUID</a>, <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00117">ScanItem::uid</a>, <a class="el" href="main_8cpp_source.html#l00402">updateDisplay()</a>, and <a class="el" href="main_8cpp_source.html#l00512">updateEnrollStatus()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_afe461d27b9c48d5921c00d521181f12f_cgraph.svg" width="518" height="291"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_afe461d27b9c48d5921c00d521181f12f_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -511,14 +511,14 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">  581</span> </div>
 <div class="line"><span class="lineno">  582</span> </div>
 <div class="line"><span class="lineno">  583</span>  <span class="comment">// Create and start the timer (5000ms period, auto-reload)</span></div>
-<div class="line"><span class="lineno">  584</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8cpp.html#a4e74ed1d9d446cd1faab3eb16c156507">createServerCheckTimer</a>(<a class="code hl_function" href="#aa0e2758845b7d1fb9e42b73c5a160462">serverCheckTimerCallback</a>, pdMS_TO_TICKS(5000))) {</div>
+<div class="line"><span class="lineno">  584</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8h.html#a4e74ed1d9d446cd1faab3eb16c156507">createServerCheckTimer</a>(<a class="code hl_function" href="#aa0e2758845b7d1fb9e42b73c5a160462">serverCheckTimerCallback</a>, pdMS_TO_TICKS(5000))) {</div>
 <div class="line"><span class="lineno">  585</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] Failed to create/start server check timer&quot;</span>);</div>
 <div class="line"><span class="lineno">  586</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><span class="lineno">  587</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] Server check timer started&quot;</span>);</div>
 <div class="line"><span class="lineno">  588</span>  }</div>
 <div class="line"><span class="lineno">  589</span> </div>
 <div class="line"><span class="lineno">  590</span>  <span class="comment">// Create and start the auth sync timer (non-blocking callback)</span></div>
-<div class="line"><span class="lineno">  591</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8cpp.html#adf4efc0096d384fe387c6115d85ef108">createAuthSyncTimer</a>(<a class="code hl_function" href="#a9c13549d7021c392f62e99ca431ed68f">authSyncTimerCallback</a>, pdMS_TO_TICKS(5000))) {</div>
+<div class="line"><span class="lineno">  591</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8h.html#adf4efc0096d384fe387c6115d85ef108">createAuthSyncTimer</a>(<a class="code hl_function" href="#a9c13549d7021c392f62e99ca431ed68f">authSyncTimerCallback</a>, pdMS_TO_TICKS(5000))) {</div>
 <div class="line"><span class="lineno">  592</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] Failed to create/start auth sync timer&quot;</span>);</div>
 <div class="line"><span class="lineno">  593</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><span class="lineno">  594</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] AuthSync timer started&quot;</span>);</div>
@@ -577,20 +577,20 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">  647</span>    vTaskDelay(pdMS_TO_TICKS(50));</div>
 <div class="line"><span class="lineno">  648</span>  }</div>
 <div class="line"><span class="lineno">  649</span>}</div>
-<div class="ttc" id="a_timer_handle_8cpp_html_a4e74ed1d9d446cd1faab3eb16c156507"><div class="ttname"><a href="_timer_handle_8cpp.html#a4e74ed1d9d446cd1faab3eb16c156507">createServerCheckTimer</a></div><div class="ttdeci">bool createServerCheckTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00009">TimerHandle.cpp:9</a></div></div>
-<div class="ttc" id="a_timer_handle_8cpp_html_adf4efc0096d384fe387c6115d85ef108"><div class="ttname"><a href="_timer_handle_8cpp.html#adf4efc0096d384fe387c6115d85ef108">createAuthSyncTimer</a></div><div class="ttdeci">bool createAuthSyncTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00016">TimerHandle.cpp:16</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_a4e74ed1d9d446cd1faab3eb16c156507"><div class="ttname"><a href="_timer_handle_8h.html#a4e74ed1d9d446cd1faab3eb16c156507">createServerCheckTimer</a></div><div class="ttdeci">bool createServerCheckTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00009">TimerHandle.cpp:9</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_adf4efc0096d384fe387c6115d85ef108"><div class="ttname"><a href="_timer_handle_8h.html#adf4efc0096d384fe387c6115d85ef108">createAuthSyncTimer</a></div><div class="ttdeci">bool createAuthSyncTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00016">TimerHandle.cpp:16</a></div></div>
 <div class="ttc" id="amain_8cpp_html_a2102e26d185797e237136e53b01c9601"><div class="ttname"><a href="#a2102e26d185797e237136e53b01c9601">postLastScan</a></div><div class="ttdeci">bool postLastScan(const String &amp;uid, JsonDocument &amp;out)</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00470">main.cpp:470</a></div></div>
 <div class="ttc" id="amain_8cpp_html_a9c13549d7021c392f62e99ca431ed68f"><div class="ttname"><a href="#a9c13549d7021c392f62e99ca431ed68f">authSyncTimerCallback</a></div><div class="ttdeci">void authSyncTimerCallback(TimerHandle_t xTimer)</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00572">main.cpp:572</a></div></div>
 <div class="ttc" id="amain_8cpp_html_aa0e2758845b7d1fb9e42b73c5a160462"><div class="ttname"><a href="#aa0e2758845b7d1fb9e42b73c5a160462">serverCheckTimerCallback</a></div><div class="ttdeci">void serverCheckTimerCallback(TimerHandle_t xTimer)</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00548">main.cpp:548</a></div></div>
 <div class="ttc" id="amain_8cpp_html_aaabbfdb22987190402dd0cd97393432c"><div class="ttname"><a href="#aaabbfdb22987190402dd0cd97393432c">serverReachable</a></div><div class="ttdeci">bool serverReachable</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00091">main.cpp:91</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00123">authSyncRequested</a>, <a class="el" href="main_8cpp_source.html#l00572">authSyncTimerCallback()</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00016">createAuthSyncTimer()</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00009">createServerCheckTimer()</a>, <a class="el" href="main_8cpp_source.html#l00125">displayUpdateRequested</a>, <a class="el" href="main_8cpp_source.html#l00088">enrollMode</a>, <a class="el" href="main_8cpp_source.html#l00470">postLastScan()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00548">serverCheckTimerCallback()</a>, <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>, and <a class="el" href="main_8cpp_source.html#l00117">ScanItem::uid</a>.</p>
+<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00123">authSyncRequested</a>, <a class="el" href="main_8cpp_source.html#l00572">authSyncTimerCallback()</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00016">createAuthSyncTimer()</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00009">createServerCheckTimer()</a>, <a class="el" href="main_8cpp_source.html#l00125">displayUpdateRequested</a>, <a class="el" href="main_8cpp_source.html#l00088">enrollMode</a>, <a class="el" href="main_8cpp_source.html#l00470">postLastScan()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00548">serverCheckTimerCallback()</a>, <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>, <a class="el" href="main_8cpp_source.html#l00117">ScanItem::uid</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00151">AuthSync::update()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a1752872dd104f06716cb944c1922de40_cgraph.svg" width="336" height="240"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a1752872dd104f06716cb944c1922de40_cgraph.svg" width="100%" height="579"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -691,8 +691,6 @@ Here is the caller graph for this function:</div>
       </table>
 </div><div class="memdoc">
 
-<p class="reference">References <a class="el" href="main_8cpp_source.html#l00059">RST_PIN</a>, and <a class="el" href="main_8cpp_source.html#l00060">SS_PIN</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00380">getUidString()</a>, <a class="el" href="main_8cpp_source.html#l00305">loop()</a>, and <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -739,9 +737,14 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">  567</span>  }</div>
 <div class="line"><span class="lineno">  568</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00080">SERVER_BASE</a>, and <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>.</p>
+<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="main_8cpp_source.html#l00080">SERVER_BASE</a>, <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00669">AuthSync::setServerProbeResult()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00578">NetworkTask()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_aa0e2758845b7d1fb9e42b73c5a160462_cgraph.svg" width="415" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
@@ -934,14 +937,14 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">  294</span>    }</div>
 <div class="line"><span class="lineno">  295</span>  }</div>
 <div class="line"><span class="lineno">  296</span>  <span class="comment">// Create timers using centralized helpers (TimerHandle.cpp)</span></div>
-<div class="line"><span class="lineno">  297</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8cpp.html#a76a4d620939b74245f3cbeb810033714">createDisplayTimer</a>(<a class="code hl_function" href="#a9c6adceab3b46443902cf2a5b0796a7c">displayTimerCallback</a>, pdMS_TO_TICKS(500))) {</div>
+<div class="line"><span class="lineno">  297</span>  <span class="keywordflow">if</span> (!<a class="code hl_function" href="_timer_handle_8h.html#a76a4d620939b74245f3cbeb810033714">createDisplayTimer</a>(<a class="code hl_function" href="#a9c6adceab3b46443902cf2a5b0796a7c">displayTimerCallback</a>, pdMS_TO_TICKS(500))) {</div>
 <div class="line"><span class="lineno">  298</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] Failed to create/start display timer&quot;</span>);</div>
 <div class="line"><span class="lineno">  299</span>  } <span class="keywordflow">else</span> {</div>
 <div class="line"><span class="lineno">  300</span>    Serial.println(<span class="stringliteral">&quot;[Tasks] Display timer started&quot;</span>);</div>
 <div class="line"><span class="lineno">  301</span>  }</div>
 <div class="line"><span class="lineno">  302</span> </div>
 <div class="line"><span class="lineno">  303</span>}</div>
-<div class="ttc" id="a_timer_handle_8cpp_html_a76a4d620939b74245f3cbeb810033714"><div class="ttname"><a href="_timer_handle_8cpp.html#a76a4d620939b74245f3cbeb810033714">createDisplayTimer</a></div><div class="ttdeci">bool createDisplayTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00023">TimerHandle.cpp:23</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_a76a4d620939b74245f3cbeb810033714"><div class="ttname"><a href="_timer_handle_8h.html#a76a4d620939b74245f3cbeb810033714">createDisplayTimer</a></div><div class="ttdeci">bool createDisplayTimer(TimerCallbackFunction_t callback, TickType_t periodTicks)</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00023">TimerHandle.cpp:23</a></div></div>
 <div class="ttc" id="aclass_auth_sync_html"><div class="ttname"><a href="class_auth_sync.html">AuthSync</a></div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00009">AuthSync.h:9</a></div></div>
 <div class="ttc" id="aclass_config_manager_html_a7bfca5cc9eec8e5fd51e0cc91f1f4b26"><div class="ttname"><a href="class_config_manager.html#a7bfca5cc9eec8e5fd51e0cc91f1f4b26">ConfigManager::loadConfig</a></div><div class="ttdeci">static bool loadConfig(String &amp;ssid, String &amp;pass, String &amp;serverBase)</div><div class="ttdef"><b>Definition</b> <a href="_config_manager_8cpp_source.html#l00018">ConfigManager.cpp:18</a></div></div>
 <div class="ttc" id="amain_8cpp_html_a03a9830d1116e7a2df45289f40175a04"><div class="ttname"><a href="#a03a9830d1116e7a2df45289f40175a04">displayedAuth</a></div><div class="ttdeci">bool displayedAuth</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00101">main.cpp:101</a></div></div>
@@ -952,11 +955,11 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="amain_8cpp_html_a9c6adceab3b46443902cf2a5b0796a7c"><div class="ttname"><a href="#a9c6adceab3b46443902cf2a5b0796a7c">displayTimerCallback</a></div><div class="ttdeci">static void displayTimerCallback(TimerHandle_t xTimer)</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00126">main.cpp:126</a></div></div>
 <div class="ttc" id="amain_8cpp_html_acd554cb2efdf9d085573f58441f9431a"><div class="ttname"><a href="#acd554cb2efdf9d085573f58441f9431a">drawHeader</a></div><div class="ttdeci">void drawHeader()</div><div class="ttdef"><b>Definition</b> <a href="main_8cpp_source.html#l00392">main.cpp:392</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00023">createDisplayTimer()</a>, <a class="el" href="main_8cpp_source.html#l00101">displayedAuth</a>, <a class="el" href="main_8cpp_source.html#l00105">displayedServerReachable</a>, <a class="el" href="main_8cpp_source.html#l00126">displayTimerCallback()</a>, <a class="el" href="main_8cpp_source.html#l00392">drawHeader()</a>, <a class="el" href="main_8cpp_source.html#l00089">lastAuthorized</a>, <a class="el" href="_config_manager_8cpp_source.html#l00018">ConfigManager::loadConfig()</a>, <a class="el" href="main_8cpp_source.html#l00578">NetworkTask()</a>, <a class="el" href="main_8cpp_source.html#l00079">PASS</a>, <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00080">SERVER_BASE</a>, <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>, <a class="el" href="main_8cpp_source.html#l00078">SSID</a>, and <a class="el" href="#a5bfb006b7c98d41a337e56d0f4a5619f">u8x8()</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00049">AuthSync::AuthSync()</a>, <a class="el" href="main_8cpp_source.html#l00084">authSync</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00120">AuthSync::begin()</a>, <a class="el" href="_timer_handle_8cpp_source.html#l00023">createDisplayTimer()</a>, <a class="el" href="main_8cpp_source.html#l00101">displayedAuth</a>, <a class="el" href="main_8cpp_source.html#l00105">displayedServerReachable</a>, <a class="el" href="main_8cpp_source.html#l00126">displayTimerCallback()</a>, <a class="el" href="main_8cpp_source.html#l00392">drawHeader()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00649">AuthSync::dumpMemoryStats()</a>, <a class="el" href="main_8cpp_source.html#l00089">lastAuthorized</a>, <a class="el" href="_config_manager_8cpp_source.html#l00018">ConfigManager::loadConfig()</a>, <a class="el" href="main_8cpp_source.html#l00578">NetworkTask()</a>, <a class="el" href="main_8cpp_source.html#l00079">PASS</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00136">AuthSync::preloadOffline()</a>, <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>, <a class="el" href="main_8cpp_source.html#l00119">scanQueue</a>, <a class="el" href="main_8cpp_source.html#l00080">SERVER_BASE</a>, <a class="el" href="main_8cpp_source.html#l00091">serverReachable</a>, <a class="el" href="main_8cpp_source.html#l00078">SSID</a>, and <a class="el" href="#a5bfb006b7c98d41a337e56d0f4a5619f">u8x8()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a4fc01d736fe50cf5b977f755b675f11d_cgraph.svg" width="548" height="443"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="main_8cpp_a4fc01d736fe50cf5b977f755b675f11d_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -1533,8 +1536,6 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="main_8cpp_source.html#l00059">59</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>.</p>
-
 </div>
 </div>
 <a id="ade0f4c7bbf1b3a2fae8019efb0b91a04" name="ade0f4c7bbf1b3a2fae8019efb0b91a04"></a>
@@ -1620,8 +1621,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="main_8cpp_source.html#l00060">60</a> of file <a class="el" href="main_8cpp_source.html">main.cpp</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="#a7cc33c6b9b1bd83e02864b1eb0530a63">rfid()</a>.</p>
 
 </div>
 </div>

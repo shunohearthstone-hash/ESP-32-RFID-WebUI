@@ -1,9 +1,9 @@
 var searchData=
 [
   ['data_0',['data',['../structtcp__api__call__t.html#aae935f5ff2e4a508ae70d456c864757c',1,'tcp_api_call_t']]],
-  ['deleteauthsynctimer_1',['deleteAuthSyncTimer',['../_timer_handle_8cpp.html#af881353836aca5625a7e1b672bc2056a',1,'deleteAuthSyncTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8h.html#af881353836aca5625a7e1b672bc2056a',1,'deleteAuthSyncTimer():&#160;TimerHandle.cpp']]],
-  ['deletedisplaytimer_2',['deleteDisplayTimer',['../_timer_handle_8cpp.html#a59fcf53e697fc893ad6b8e6541814743',1,'deleteDisplayTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8h.html#a59fcf53e697fc893ad6b8e6541814743',1,'deleteDisplayTimer():&#160;TimerHandle.cpp']]],
-  ['deleteserverchecktimer_3',['deleteServerCheckTimer',['../_timer_handle_8cpp.html#a0d79e4c2fa350c6be5dd1c8ee6ea9970',1,'deleteServerCheckTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8h.html#a0d79e4c2fa350c6be5dd1c8ee6ea9970',1,'deleteServerCheckTimer():&#160;TimerHandle.cpp']]],
+  ['deleteauthsynctimer_1',['deleteAuthSyncTimer',['../_timer_handle_8h.html#af881353836aca5625a7e1b672bc2056a',1,'deleteAuthSyncTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8cpp.html#af881353836aca5625a7e1b672bc2056a',1,'deleteAuthSyncTimer():&#160;TimerHandle.cpp']]],
+  ['deletedisplaytimer_2',['deleteDisplayTimer',['../_timer_handle_8h.html#a59fcf53e697fc893ad6b8e6541814743',1,'deleteDisplayTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8cpp.html#a59fcf53e697fc893ad6b8e6541814743',1,'deleteDisplayTimer():&#160;TimerHandle.cpp']]],
+  ['deleteserverchecktimer_3',['deleteServerCheckTimer',['../_timer_handle_8h.html#a0d79e4c2fa350c6be5dd1c8ee6ea9970',1,'deleteServerCheckTimer():&#160;TimerHandle.cpp'],['../_timer_handle_8cpp.html#a0d79e4c2fa350c6be5dd1c8ee6ea9970',1,'deleteServerCheckTimer():&#160;TimerHandle.cpp']]],
   ['denyhashes_5f_4',['denyHashes_',['../class_auth_sync.html#ad78cb855593edc232e2a7e7f9f618d11',1,'AuthSync']]],
   ['disconnectclient_5',['disconnectClient',['../class_async_telnet.html#a346009ece13de398b1e461f674bbd215',1,'AsyncTelnet']]],
   ['disconnected_6',['disconnected',['../class_async_client.html#a50b8da5a047d60c453a2012a6fbec45b',1,'AsyncClient']]],
@@ -15,7 +15,7 @@ var searchData=
   ['displayedhash_12',['displayedHash',['../main_8cpp.html#adf631c280a32218b5aa79cddd4558ff5',1,'main.cpp']]],
   ['displayedserverreachable_13',['displayedServerReachable',['../main_8cpp.html#a91749a0ec9fd5fb7fae5a267c367c310',1,'main.cpp']]],
   ['displayeduid_14',['displayedUID',['../main_8cpp.html#aee19abced5301f8fc584c38c87544ec3',1,'main.cpp']]],
-  ['displaytimer_15',['displayTimer',['../_timer_handle_8cpp.html#a0aff9be908072c657f591b15a3304967',1,'displayTimer:&#160;TimerHandle.cpp'],['../_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967',1,'displayTimer:&#160;TimerHandle.cpp']]],
+  ['displaytimer_15',['displayTimer',['../_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967',1,'displayTimer:&#160;TimerHandle.cpp'],['../_timer_handle_8cpp.html#a0aff9be908072c657f591b15a3304967',1,'displayTimer:&#160;TimerHandle.cpp']]],
   ['displaytimercallback_16',['displayTimerCallback',['../main_8cpp.html#a9c6adceab3b46443902cf2a5b0796a7c',1,'main.cpp']]],
   ['displayupdaterequested_17',['displayUpdateRequested',['../main_8cpp.html#a864523f32850f0270aa3dfaec1a7cc81',1,'main.cpp']]],
   ['dns_18',['dns',['../structlwip__event__packet__t.html#aada8f4e4ecb884ef3d5fb0af41dc6e53',1,'lwip_event_packet_t']]],

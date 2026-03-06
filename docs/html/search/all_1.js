@@ -44,6 +44,6 @@ var searchData=
   ['authsync_2ecpp_41',['AuthSync.cpp',['../_auth_sync_8cpp.html',1,'']]],
   ['authsync_2eh_42',['AuthSync.h',['../_auth_sync_8h.html',1,'']]],
   ['authsyncrequested_43',['authSyncRequested',['../main_8cpp.html#a17a0d9682d7ca5d16bafb3c8b258b69f',1,'main.cpp']]],
-  ['authsynctimer_44',['authSyncTimer',['../_timer_handle_8cpp.html#a24225da010bcd4413f31ee2a8aa1ed7a',1,'authSyncTimer:&#160;TimerHandle.cpp'],['../_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a',1,'authSyncTimer:&#160;TimerHandle.cpp']]],
+  ['authsynctimer_44',['authSyncTimer',['../_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a',1,'authSyncTimer:&#160;TimerHandle.cpp'],['../_timer_handle_8cpp.html#a24225da010bcd4413f31ee2a8aa1ed7a',1,'authSyncTimer:&#160;TimerHandle.cpp']]],
   ['authsynctimercallback_45',['authSyncTimerCallback',['../main_8cpp.html#a9c13549d7021c392f62e99ca431ed68f',1,'main.cpp']]]
 ];

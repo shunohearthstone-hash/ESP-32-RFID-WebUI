@@ -139,12 +139,12 @@ Variables</h2></td></tr>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00016">16</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   16</span>                                                                                   {</div>
-<div class="line"><span class="lineno">   17</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">   18</span>    <a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> = xTimerCreate(<span class="stringliteral">&quot;AuthSync&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
-<div class="line"><span class="lineno">   19</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   20</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0) == pdPASS;</div>
+<div class="line"><span class="lineno">   17</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">   18</span>    <a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> = xTimerCreate(<span class="stringliteral">&quot;AuthSync&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
+<div class="line"><span class="lineno">   19</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   20</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0) == pdPASS;</div>
 <div class="line"><span class="lineno">   21</span>}</div>
-<div class="ttc" id="a_timer_handle_8cpp_html_a24225da010bcd4413f31ee2a8aa1ed7a"><div class="ttname"><a href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a></div><div class="ttdeci">TimerHandle_t authSyncTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00006">TimerHandle.cpp:6</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_a24225da010bcd4413f31ee2a8aa1ed7a"><div class="ttname"><a href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a></div><div class="ttdeci">TimerHandle_t authSyncTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00006">TimerHandle.cpp:6</a></div></div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_timer_handle_8cpp_source.html#l00006">authSyncTimer</a>.</p>
 
@@ -178,12 +178,12 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00023">23</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   23</span>                                                                                  {</div>
-<div class="line"><span class="lineno">   24</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">   25</span>    <a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a> = xTimerCreate(<span class="stringliteral">&quot;Display&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
-<div class="line"><span class="lineno">   26</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   27</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0) == pdPASS;</div>
+<div class="line"><span class="lineno">   24</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">   25</span>    <a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a> = xTimerCreate(<span class="stringliteral">&quot;Display&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
+<div class="line"><span class="lineno">   26</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   27</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0) == pdPASS;</div>
 <div class="line"><span class="lineno">   28</span>}</div>
-<div class="ttc" id="a_timer_handle_8cpp_html_a0aff9be908072c657f591b15a3304967"><div class="ttname"><a href="#a0aff9be908072c657f591b15a3304967">displayTimer</a></div><div class="ttdeci">TimerHandle_t displayTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00007">TimerHandle.cpp:7</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_a0aff9be908072c657f591b15a3304967"><div class="ttname"><a href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a></div><div class="ttdeci">TimerHandle_t displayTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00007">TimerHandle.cpp:7</a></div></div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_timer_handle_8cpp_source.html#l00007">displayTimer</a>.</p>
 
@@ -217,12 +217,12 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00009">9</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">    9</span>                                                                                      {</div>
-<div class="line"><span class="lineno">   10</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
-<div class="line"><span class="lineno">   11</span>    <a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> = xTimerCreate(<span class="stringliteral">&quot;ServerCheck&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
-<div class="line"><span class="lineno">   12</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
-<div class="line"><span class="lineno">   13</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0) == pdPASS;</div>
+<div class="line"><span class="lineno">   10</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> != <span class="keyword">nullptr</span>) <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
+<div class="line"><span class="lineno">   11</span>    <a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> = xTimerCreate(<span class="stringliteral">&quot;ServerCheck&quot;</span>, periodTicks, pdTRUE, <span class="keyword">nullptr</span>, callback);</div>
+<div class="line"><span class="lineno">   12</span>    <span class="keywordflow">if</span> (!<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>) <span class="keywordflow">return</span> <span class="keyword">false</span>;</div>
+<div class="line"><span class="lineno">   13</span>    <span class="keywordflow">return</span> xTimerStart(<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0) == pdPASS;</div>
 <div class="line"><span class="lineno">   14</span>}</div>
-<div class="ttc" id="a_timer_handle_8cpp_html_a339b37098087a232fd57f3765b1fae44"><div class="ttname"><a href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a></div><div class="ttdeci">TimerHandle_t serverCheckTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00005">TimerHandle.cpp:5</a></div></div>
+<div class="ttc" id="a_timer_handle_8h_html_a339b37098087a232fd57f3765b1fae44"><div class="ttname"><a href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a></div><div class="ttdeci">TimerHandle_t serverCheckTimer</div><div class="ttdef"><b>Definition</b> <a href="_timer_handle_8cpp_source.html#l00005">TimerHandle.cpp:5</a></div></div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_timer_handle_8cpp_source.html#l00005">serverCheckTimer</a>.</p>
 
@@ -252,10 +252,10 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00037">37</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   37</span>                           {</div>
-<div class="line"><span class="lineno">   38</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>) {</div>
-<div class="line"><span class="lineno">   39</span>        xTimerStop(<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   40</span>        xTimerDelete(<a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   41</span>        <a class="code hl_variable" href="#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   38</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>) {</div>
+<div class="line"><span class="lineno">   39</span>        xTimerStop(<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   40</span>        xTimerDelete(<a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   41</span>        <a class="code hl_variable" href="_timer_handle_8h.html#a24225da010bcd4413f31ee2a8aa1ed7a">authSyncTimer</a> = <span class="keyword">nullptr</span>;</div>
 <div class="line"><span class="lineno">   42</span>    }</div>
 <div class="line"><span class="lineno">   43</span>}</div>
 </div><!-- fragment -->
@@ -280,10 +280,10 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00044">44</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   44</span>                          {</div>
-<div class="line"><span class="lineno">   45</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a>) {</div>
-<div class="line"><span class="lineno">   46</span>        xTimerStop(<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   47</span>        xTimerDelete(<a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   48</span>        <a class="code hl_variable" href="#a0aff9be908072c657f591b15a3304967">displayTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   45</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a>) {</div>
+<div class="line"><span class="lineno">   46</span>        xTimerStop(<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   47</span>        xTimerDelete(<a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   48</span>        <a class="code hl_variable" href="_timer_handle_8h.html#a0aff9be908072c657f591b15a3304967">displayTimer</a> = <span class="keyword">nullptr</span>;</div>
 <div class="line"><span class="lineno">   49</span>    }</div>
 <div class="line"><span class="lineno">   50</span>}</div>
 </div><!-- fragment -->
@@ -308,10 +308,10 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_timer_handle_8cpp_source.html#l00030">30</a> of file <a class="el" href="_timer_handle_8cpp_source.html">TimerHandle.cpp</a>.</p>
 <div class="fragment"><div class="line"><span class="lineno">   30</span>                              {</div>
-<div class="line"><span class="lineno">   31</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>) {</div>
-<div class="line"><span class="lineno">   32</span>        xTimerStop(<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   33</span>        xTimerDelete(<a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0);</div>
-<div class="line"><span class="lineno">   34</span>        <a class="code hl_variable" href="#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> = <span class="keyword">nullptr</span>;</div>
+<div class="line"><span class="lineno">   31</span>    <span class="keywordflow">if</span> (<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>) {</div>
+<div class="line"><span class="lineno">   32</span>        xTimerStop(<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   33</span>        xTimerDelete(<a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a>, 0);</div>
+<div class="line"><span class="lineno">   34</span>        <a class="code hl_variable" href="_timer_handle_8h.html#a339b37098087a232fd57f3765b1fae44">serverCheckTimer</a> = <span class="keyword">nullptr</span>;</div>
 <div class="line"><span class="lineno">   35</span>    }</div>
 <div class="line"><span class="lineno">   36</span>}</div>
 </div><!-- fragment -->

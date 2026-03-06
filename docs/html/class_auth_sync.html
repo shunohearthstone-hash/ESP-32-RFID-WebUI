@@ -63,7 +63,7 @@ $(function() {
   </div>
 </div>
 <script type="text/javascript">
-$(function(){initNavTree('class_auth_sync.html','',''); });
+$(function(){initNavTree('class_auth_sync.html','','class_auth_sync-members'); });
 </script>
 <div id="container">
 <div id="doc-content">
@@ -187,7 +187,14 @@ Private Attributes</h2></td></tr>
 <div class="ttc" id="aclass_auth_sync_html_afb50a2bf2cc0d57028d96c75815fa23b"><div class="ttname"><a href="#afb50a2bf2cc0d57028d96c75815fa23b">AuthSync::server_base</a></div><div class="ttdeci">String server_base</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00044">AuthSync.h:44</a></div></div>
 <div class="ttc" id="anamespaceanonymous__namespace_02_auth_sync_8cpp_03_html_ab7673f2ea05ec138b3a1b361880c14fa"><div class="ttname"><a href="namespaceanonymous__namespace_02_auth_sync_8cpp_03.html#ab7673f2ea05ec138b3a1b361880c14fa">anonymous_namespace{AuthSync.cpp}::authorized_bits_storage</a></div><div class="ttdeci">uint8_t authorized_bits_storage[25000]</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00022">AuthSync.cpp:22</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00048">authorized_bits</a>, and <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00048">authorized_bits</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00022">anonymous_namespace{AuthSync.cpp}::authorized_bits_storage</a>, and <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_aec04aa99037a9c07ddd7603471e3ec4f_icgraph.svg" width="256" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -278,7 +285,7 @@ Private Attributes</h2></td></tr>
 <div class="ttc" id="aclass_auth_sync_html_ad78cb855593edc232e2a7e7f9f618d11"><div class="ttname"><a href="#ad78cb855593edc232e2a7e7f9f618d11">AuthSync::denyHashes_</a></div><div class="ttdeci">std::vector&lt; uint64_t &gt; denyHashes_</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00072">AuthSync.h:72</a></div></div>
 <div class="ttc" id="aclass_auth_sync_html_afea91831a16e241cc5db5163299fc900"><div class="ttname"><a href="#afea91831a16e241cc5db5163299fc900">AuthSync::hashUid</a></div><div class="ttdeci">static uint64_t hashUid(const String &amp;s)</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00040">AuthSync.cpp:40</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00040">hashUid()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00542">saveETagToNVS()</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00040">hashUid()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00542">saveETagToNVS()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00158">isAuthorized()</a>.</p>
 <div class="dynheader">
@@ -289,7 +296,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a4e7f7720c3b9e51ceb1ab4d911f03e23_icgraph.svg" width="392" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a4e7f7720c3b9e51ceb1ab4d911f03e23_icgraph.svg" width="486" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -328,10 +335,17 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_auth_sync_html_ac017101fb171c69cdf5449a54b9832ac"><div class="ttname"><a href="#ac017101fb171c69cdf5449a54b9832ac">AuthSync::loadBitsetFromFS</a></div><div class="ttdeci">bool loadBitsetFromFS()</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00595">AuthSync.cpp:595</a></div></div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00595">loadBitsetFromFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00556">loadETagFromNVS()</a>, <a class="el" href="_auth_sync_8h_source.html#l00069">prefs_</a>, <a class="el" href="_auth_sync_8h_source.html#l00070">prefsOpen_</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00288">syncFromServer()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a6834600967f5b023e9810fc2293d2c51_cgraph.svg" width="100%" height="527"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a6834600967f5b023e9810fc2293d2c51_cgraph.svg" width="100%" height="499"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a6834600967f5b023e9810fc2293d2c51_icgraph.svg" width="230" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -372,7 +386,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_aab1e2b7beebdab60e16d9b3a50678efd_icgraph.svg" width="100%" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_aab1e2b7beebdab60e16d9b3a50678efd_icgraph.svg" width="100%" height="470"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -447,11 +461,18 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_auth_sync_html_a7586975c6fedef2977595e8f6a4ca33b"><div class="ttname"><a href="#a7586975c6fedef2977595e8f6a4ca33b">AuthSync::MAX_SAFE_BYTES</a></div><div class="ttdeci">static constexpr size_t MAX_SAFE_BYTES</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00019">AuthSync.h:19</a></div></div>
 <div class="ttc" id="aclass_auth_sync_html_aab1e2b7beebdab60e16d9b3a50678efd"><div class="ttname"><a href="#aab1e2b7beebdab60e16d9b3a50678efd">AuthSync::calcBitsetBytes</a></div><div class="ttdeci">static size_t calcBitsetBytes(uint32_t maxId)</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00064">AuthSync.cpp:64</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00064">calcBitsetBytes()</a>, <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>, <a class="el" href="_auth_sync_8h_source.html#l00049">max_card_id</a>, and <a class="el" href="_auth_sync_8h_source.html#l00019">MAX_SAFE_BYTES</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00064">calcBitsetBytes()</a>, <a class="el" href="_auth_sync_8h_source.html#l00049">max_card_id</a>, and <a class="el" href="_auth_sync_8h_source.html#l00019">MAX_SAFE_BYTES</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a70491cf68689f4d6dc2e34ecdb385e26_cgraph.svg" width="434" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a70491cf68689f4d6dc2e34ecdb385e26_icgraph.svg" width="308" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -549,7 +570,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a30cbd10c13742a6ab7bafc4011480fec_icgraph.svg" width="407" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a30cbd10c13742a6ab7bafc4011480fec_icgraph.svg" width="500" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -655,7 +676,7 @@ Here is the call graph for this function:</div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_hash_utils_8cpp_source.html#l00018">HashUtils::hashUid()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00158">isAuthorized()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00288">syncFromServer()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00158">isAuthorized()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
@@ -664,7 +685,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_afea91831a16e241cc5db5163299fc900_icgraph.svg" width="582" height="164"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_afea91831a16e241cc5db5163299fc900_icgraph.svg" width="667" height="63"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -722,11 +743,18 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_auth_sync_html_a30cbd10c13742a6ab7bafc4011480fec"><div class="ttname"><a href="#a30cbd10c13742a6ab7bafc4011480fec">AuthSync::getCardAuthFromServer</a></div><div class="ttdeci">bool getCardAuthFromServer(const String &amp;uid, int &amp;card_id, bool &amp;authorized)</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00193">AuthSync.cpp:193</a></div></div>
 <div class="ttc" id="aclass_auth_sync_html_a4e7f7720c3b9e51ceb1ab4d911f03e23"><div class="ttname"><a href="#a4e7f7720c3b9e51ceb1ab4d911f03e23">AuthSync::addKnownAuth</a></div><div class="ttdeci">void addKnownAuth(const String &amp;uid, bool allowed)</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00471">AuthSync.cpp:471</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00193">getCardAuthFromServer()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00040">hashUid()</a>, and <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00193">getCardAuthFromServer()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00040">hashUid()</a>, and <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00305">loop()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_aeb16a776532ee69ba1ca44b11904a2c2_cgraph.svg" width="100%" height="416"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_aeb16a776532ee69ba1ca44b11904a2c2_icgraph.svg" width="263" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -816,8 +844,6 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">  538</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><span class="lineno">  539</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, and <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00556">loadETagFromNVS()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -883,7 +909,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ac017101fb171c69cdf5449a54b9832ac_icgraph.svg" width="416" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ac017101fb171c69cdf5449a54b9832ac_icgraph.svg" width="518" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -937,7 +963,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a068f973556d6acd59bf12b10220d26b0_icgraph.svg" width="423" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a068f973556d6acd59bf12b10220d26b0_icgraph.svg" width="524" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -974,10 +1000,17 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">  149</span>}</div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_auth_sync_8cpp_source.html#l00595">loadBitsetFromFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00556">loadETagFromNVS()</a>, <a class="el" href="_auth_sync_8h_source.html#l00069">prefs_</a>, and <a class="el" href="_auth_sync_8h_source.html#l00070">prefsOpen_</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00129">setup()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
 <div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a6b5eb87b981c15a7ed816bd5e133546c_cgraph.svg" width="100%" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a6b5eb87b981c15a7ed816bd5e133546c_icgraph.svg" width="278" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1074,8 +1107,6 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno">  513</span>    <span class="keywordflow">return</span> <span class="keyword">true</span>;</div>
 <div class="line"><span class="lineno">  514</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, and <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00542">saveETagToNVS()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -1142,7 +1173,7 @@ Here is the caller graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a4a8d3b99ed3bfb87ab36b2abbcce0594_icgraph.svg" width="594" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a4a8d3b99ed3bfb87ab36b2abbcce0594_icgraph.svg" width="100%" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -1197,7 +1228,7 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a96c599b762bdafa672930dfa6f07ff13_icgraph.svg" width="634" height="139"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a96c599b762bdafa672930dfa6f07ff13_icgraph.svg" width="100%" height="404"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -1264,6 +1295,13 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno">  672</span>}</div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00053">last_server_probe</a>, and <a class="el" href="_auth_sync_8h_source.html#l00054">server_last_ok</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00548">serverCheckTimerCallback()</a>.</p>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a668053bb8f705b94855d748e8705e903_icgraph.svg" width="663" height="54"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -1442,18 +1480,18 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_auth_sync_html_a756e144d847c736d9932311d101a8a8f"><div class="ttname"><a href="#a756e144d847c736d9932311d101a8a8f">AuthSync::writeByteAt</a></div><div class="ttdeci">bool writeByteAt(size_t idx, uint8_t val) const</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8cpp_source.html#l00073">AuthSync.cpp:73</a></div></div>
 <div class="ttc" id="aclass_auth_sync_html_aed4bbde8a743e57db26bd81c1120a179"><div class="ttname"><a href="#aed4bbde8a743e57db26bd81c1120a179">AuthSync::last_sync</a></div><div class="ttdeci">unsigned long last_sync</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00050">AuthSync.h:50</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00071">allowHashes_</a>, <a class="el" href="_auth_sync_8h_source.html#l00048">authorized_bits</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00064">calcBitsetBytes()</a>, <a class="el" href="_auth_sync_8h_source.html#l00072">denyHashes_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00040">hashUid()</a>, <a class="el" href="_auth_sync_8h_source.html#l00074">last_etag</a>, <a class="el" href="_auth_sync_8h_source.html#l00053">last_server_probe</a>, <a class="el" href="_auth_sync_8h_source.html#l00050">last_sync</a>, <a class="el" href="_auth_sync_8h_source.html#l00049">max_card_id</a>, <a class="el" href="_auth_sync_8h_source.html#l00019">MAX_SAFE_BYTES</a>, <a class="el" href="_auth_sync_8h_source.html#l00069">prefs_</a>, <a class="el" href="_auth_sync_8h_source.html#l00070">prefsOpen_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00568">saveBitsetToFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00542">saveETagToNVS()</a>, <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>, <a class="el" href="_auth_sync_8h_source.html#l00054">server_last_ok</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00073">writeByteAt()</a>.</p>
+<p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00048">authorized_bits</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00064">calcBitsetBytes()</a>, <a class="el" href="_auth_sync_8h_source.html#l00074">last_etag</a>, <a class="el" href="_auth_sync_8h_source.html#l00053">last_server_probe</a>, <a class="el" href="_auth_sync_8h_source.html#l00050">last_sync</a>, <a class="el" href="_auth_sync_8h_source.html#l00049">max_card_id</a>, <a class="el" href="_auth_sync_8h_source.html#l00019">MAX_SAFE_BYTES</a>, <a class="el" href="_auth_sync_8h_source.html#l00069">prefs_</a>, <a class="el" href="_auth_sync_8h_source.html#l00070">prefsOpen_</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00568">saveBitsetToFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00542">saveETagToNVS()</a>, <a class="el" href="_auth_sync_8h_source.html#l00044">server_base</a>, <a class="el" href="_auth_sync_8h_source.html#l00054">server_last_ok</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00073">writeByteAt()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00120">begin()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00151">update()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ab2999f3e828083471d482f9bde0d72f2_cgraph.svg" width="100%" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ab2999f3e828083471d482f9bde0d72f2_cgraph.svg" width="100%" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ab2999f3e828083471d482f9bde0d72f2_icgraph.svg" width="367" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_ab2999f3e828083471d482f9bde0d72f2_icgraph.svg" width="634" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1483,10 +1521,17 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_auth_sync_html_a6d049856bf4f6e0923be89c314f18d7e"><div class="ttname"><a href="#a6d049856bf4f6e0923be89c314f18d7e">AuthSync::SYNC_INTERVAL</a></div><div class="ttdeci">unsigned long SYNC_INTERVAL</div><div class="ttdef"><b>Definition</b> <a href="_auth_sync_8h_source.html#l00051">AuthSync.h:51</a></div></div>
 </div><!-- fragment -->
 <p class="reference">References <a class="el" href="_auth_sync_8h_source.html#l00050">last_sync</a>, <a class="el" href="_auth_sync_8h_source.html#l00051">SYNC_INTERVAL</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00288">syncFromServer()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="main_8cpp_source.html#l00578">NetworkTask()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a19dac50eb59905f92b7da75d12f5f309_cgraph.svg" width="100%" height="480"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a19dac50eb59905f92b7da75d12f5f309_cgraph.svg" width="100%" height="419"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a19dac50eb59905f92b7da75d12f5f309_icgraph.svg" width="384" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -1539,12 +1584,12 @@ Here is the call graph for this function:</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a756e144d847c736d9932311d101a8a8f_icgraph.svg" width="570" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_auth_sync_a756e144d847c736d9932311d101a8a8f_icgraph.svg" width="100%" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
 </div>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Field Documentation</h2>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a1b4f5bd9a2f7dd88dd08f19858b3efb8" name="a1b4f5bd9a2f7dd88dd08f19858b3efb8"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1b4f5bd9a2f7dd88dd08f19858b3efb8">&#9670;&#160;</a></span>allowHashes_</h2>
 
@@ -1566,8 +1611,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_auth_sync_8h_source.html#l00071">71</a> of file <a class="el" href="_auth_sync_8h_source.html">AuthSync.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00649">dumpMemoryStats()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00158">isAuthorized()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00516">loadAllowDenyFromFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00494">saveAllowDenyToFS()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00288">syncFromServer()</a>.</p>
 
 </div>
 </div>
@@ -1618,8 +1661,6 @@ Here is the caller graph for this function:</div>
 </div><div class="memdoc">
 
 <p class="definition">Definition at line <a class="el" href="_auth_sync_8h_source.html#l00072">72</a> of file <a class="el" href="_auth_sync_8h_source.html">AuthSync.h</a>.</p>
-
-<p class="reference">Referenced by <a class="el" href="_auth_sync_8cpp_source.html#l00471">addKnownAuth()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00649">dumpMemoryStats()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00158">isAuthorized()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00516">loadAllowDenyFromFS()</a>, <a class="el" href="_auth_sync_8cpp_source.html#l00494">saveAllowDenyToFS()</a>, and <a class="el" href="_auth_sync_8cpp_source.html#l00288">syncFromServer()</a>.</p>
 
 </div>
 </div>

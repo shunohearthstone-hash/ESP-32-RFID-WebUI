@@ -63,7 +63,7 @@ $(function() {
   </div>
 </div>
 <script type="text/javascript">
-$(function(){initNavTree('class_async_server.html','',''); });
+$(function(){initNavTree('class_async_server.html','','class_async_server-members'); });
 </script>
 <div id="container">
 <div id="doc-content">
@@ -174,13 +174,18 @@ Protected Attributes</h2></td></tr>
 <div class="ttc" id="aclass_async_server_html_ad7a57ed05434f2367dc2dcb360ea49f3"><div class="ttname"><a href="#ad7a57ed05434f2367dc2dcb360ea49f3">AsyncServer::_bind6</a></div><div class="ttdeci">bool _bind6</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8h_source.html#l00330">AsyncTCP.h:330</a></div></div>
 <div class="ttc" id="aclass_async_server_html_ad9751335ff478961c3eb1f476f48f3fe"><div class="ttname"><a href="#ad9751335ff478961c3eb1f476f48f3fe">AsyncServer::_noDelay</a></div><div class="ttdeci">bool _noDelay</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8h_source.html#l00335">AsyncTCP.h:335</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01655">_s_accept()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01659">_s_accepted()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_aa6357ae6df41ef23d53d2a73759f5016_cgraph.svg" width="191" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_aa6357ae6df41ef23d53d2a73759f5016_icgraph.svg" width="100%" height="366"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_aa6357ae6df41ef23d53d2a73759f5016_icgraph.svg" width="191" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 
 </div>
@@ -208,8 +213,6 @@ Here is the caller graph for this function:</div>
 <div class="fragment"><div class="line"><span class="lineno"> 1529</span>    : <a class="code hl_variable" href="#a8ab204dce6053e206b06585e5695f1d8">_port</a>(port), <a class="code hl_variable" href="#a3728b5bcb47664b3efbaee2e496da9ef">_bind4</a>(<span class="keyword">false</span>), <a class="code hl_variable" href="#ad7a57ed05434f2367dc2dcb360ea49f3">_bind6</a>(<span class="keyword">true</span>), <a class="code hl_variable" href="#a5486c40d2a8fe8de8d56341a8b559bfe">_addr6</a>(addr), <a class="code hl_variable" href="#ad9751335ff478961c3eb1f476f48f3fe">_noDelay</a>(<span class="keyword">false</span>), <a class="code hl_variable" href="#a779d4c20f342ab7e0d08a9de27c5d0df">_pcb</a>(0), <a class="code hl_variable" href="#ace661aecb40ce2bf643b44b7ffcd5436">_connect_cb</a>(0), <a class="code hl_variable" href="#a60008b96eb6407d2376940d9dbcd48a3">_connect_cb_arg</a>(0) {}</div>
 <div class="ttc" id="aclass_async_server_html_a5486c40d2a8fe8de8d56341a8b559bfe"><div class="ttname"><a href="#a5486c40d2a8fe8de8d56341a8b559bfe">AsyncServer::_addr6</a></div><div class="ttdeci">IPv6Address _addr6</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8h_source.html#l00333">AsyncTCP.h:333</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00333">_addr6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>.</p>
-
 </div>
 </div>
 <a id="a062f1eb5125c8f4dcae698ba3ad09b0d" name="a062f1eb5125c8f4dcae698ba3ad09b0d"></a>
@@ -237,7 +240,19 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno"> 1539</span>      <a class="code hl_variable" href="#ad9751335ff478961c3eb1f476f48f3fe">_noDelay</a>(<span class="keyword">false</span>), <a class="code hl_variable" href="#a779d4c20f342ab7e0d08a9de27c5d0df">_pcb</a>(0), <a class="code hl_variable" href="#ace661aecb40ce2bf643b44b7ffcd5436">_connect_cb</a>(0), <a class="code hl_variable" href="#a60008b96eb6407d2376940d9dbcd48a3">_connect_cb_arg</a>(0) {</div>
 <div class="line"><span class="lineno"> 1540</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00333">_addr6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>.</p>
+
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>.</p>
+<div class="dynheader">
+Here is the call graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a062f1eb5125c8f4dcae698ba3ad09b0d_cgraph.svg" width="191" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
+<div class="dynheader">
+Here is the caller graph for this function:</div>
+<div class="dyncontent">
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a062f1eb5125c8f4dcae698ba3ad09b0d_icgraph.svg" width="191" height="62"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+</div>
 
 </div>
 </div>
@@ -318,13 +333,13 @@ Here is the call graph for this function:</div>
 <div class="ttc" id="a_async_t_c_p_8cpp_html_ab02a78d0cd56732252f0c2c27f286369"><div class="ttname"><a href="_async_t_c_p_8cpp.html#ab02a78d0cd56732252f0c2c27f286369">_tcp_accept</a></div><div class="ttdeci">static int8_t _tcp_accept(void *arg, AsyncClient *client)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l00471">AsyncTCP.cpp:471</a></div></div>
 <div class="ttc" id="aclass_async_client_html_af1819edd57b1ce0666a6cd390bcaf587"><div class="ttname"><a href="class_async_client.html#af1819edd57b1ce0666a6cd390bcaf587">AsyncClient::setNoDelay</a></div><div class="ttdeci">void setNoDelay(bool nodelay)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l01204">AsyncTCP.cpp:1204</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00471">_tcp_accept()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01204">AsyncClient::setNoDelay()</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00335">_noDelay</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00471">_tcp_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00682">AsyncClient::AsyncClient()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01204">AsyncClient::setNoDelay()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01655">_s_accept()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a51e55999b79eec50bd68e899b8ddd4e4_cgraph.svg" width="582" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a51e55999b79eec50bd68e899b8ddd4e4_cgraph.svg" width="100%" height="549"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -365,8 +380,6 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno"> 1637</span>  <span class="keywordflow">return</span> ERR_OK;</div>
 <div class="line"><span class="lineno"> 1638</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>.</p>
-
 <p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01659">_s_accepted()</a>.</p>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -415,13 +428,13 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="aclass_async_server_html_a51e55999b79eec50bd68e899b8ddd4e4"><div class="ttname"><a href="#a51e55999b79eec50bd68e899b8ddd4e4">AsyncServer::_accept</a></div><div class="ttdeci">int8_t _accept(tcp_pcb *newpcb, int8_t err)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l01617">AsyncTCP.cpp:1617</a></div></div>
 <div class="ttc" id="aclass_async_server_html_aa6357ae6df41ef23d53d2a73759f5016"><div class="ttname"><a href="#aa6357ae6df41ef23d53d2a73759f5016">AsyncServer::AsyncServer</a></div><div class="ttdeci">AsyncServer(IPAddress addr, uint16_t port)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l01514">AsyncTCP.cpp:1514</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8cpp_source.html#l01617">_accept()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8cpp_source.html#l01617">_accept()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a9cfd997e84bd4ba394f3225863536d5e_cgraph.svg" width="100%" height="385"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a9cfd997e84bd4ba394f3225863536d5e_cgraph.svg" width="100%" height="568"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -464,13 +477,13 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno"> 1661</span>}</div>
 <div class="ttc" id="aclass_async_server_html_ae12ee87206611e09ed5e644c6baf1c96"><div class="ttname"><a href="#ae12ee87206611e09ed5e644c6baf1c96">AsyncServer::_accepted</a></div><div class="ttdeci">int8_t _accepted(AsyncClient *client)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l01633">AsyncTCP.cpp:1633</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8cpp_source.html#l01633">_accepted()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8cpp_source.html#l01633">_accepted()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l00264">_handle_async_event()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a68b4c50c0bf8f5109b9981a87d5d34e5_cgraph.svg" width="416" height="88"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
+<div class="center"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a68b4c50c0bf8f5109b9981a87d5d34e5_cgraph.svg" width="402" height="38"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div>
 </div>
 <div class="dynheader">
 Here is the caller graph for this function:</div>
@@ -553,11 +566,11 @@ Here is the caller graph for this function:</div>
 <div class="ttc" id="a_async_t_c_p_8cpp_html_aee5e1647c26d153acdb578ed0fa3dd77"><div class="ttname"><a href="_async_t_c_p_8cpp.html#aee5e1647c26d153acdb578ed0fa3dd77">TCP_MUTEX_UNLOCK</a></div><div class="ttdeci">#define TCP_MUTEX_UNLOCK()</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l00059">AsyncTCP.cpp:59</a></div></div>
 <div class="ttc" id="aclass_async_server_html_a9cfd997e84bd4ba394f3225863536d5e"><div class="ttname"><a href="#a9cfd997e84bd4ba394f3225863536d5e">AsyncServer::_s_accept</a></div><div class="ttdeci">static int8_t _s_accept(void *arg, tcp_pcb *newpcb, int8_t err)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l01655">AsyncTCP.cpp:1655</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00333">_addr6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01655">_s_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00347">_start_async_task()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00646">_tcp_bind()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00589">_tcp_close()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00666">_tcp_listen_with_backlog()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00058">TCP_MUTEX_LOCK</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l00059">TCP_MUTEX_UNLOCK</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00331">_addr</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00329">_bind4</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00330">_bind6</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, <a class="el" href="_async_t_c_p_8h_source.html#l00328">_port</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01655">_s_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00347">_start_async_task()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00646">_tcp_bind()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00589">_tcp_close()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l00666">_tcp_listen_with_backlog()</a>.</p>
 <div class="dynheader">
 Here is the call graph for this function:</div>
 <div class="dyncontent">
-<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a7e9ce55e4e1d0fab5531bac98ebfb3f9_cgraph.svg" width="100%" height="589"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
+<div class="center"><div class="zoom"><iframe scrolling="no" loading="lazy" frameborder="0" src="class_async_server_a7e9ce55e4e1d0fab5531bac98ebfb3f9_cgraph.svg" width="100%" height="600"><p><b>This browser is not able to show SVG: try Firefox, Chrome, Safari, or Opera instead.</b></p></iframe></div></div>
 </div>
 
 </div>
@@ -594,7 +607,7 @@ Here is the call graph for this function:</div>
 <div class="line"><span class="lineno"> 1614</span>}</div>
 <div class="ttc" id="a_async_t_c_p_8cpp_html_a3e2474b46f6a3f01db216511d2bcfc4c"><div class="ttname"><a href="_async_t_c_p_8cpp.html#a3e2474b46f6a3f01db216511d2bcfc4c">_tcp_abort</a></div><div class="ttdeci">static esp_err_t _tcp_abort(tcp_pcb *pcb, int8_t closed_slot)</div><div class="ttdef"><b>Definition</b> <a href="_async_t_c_p_8cpp_source.html#l00609">AsyncTCP.cpp:609</a></div></div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00609">_tcp_abort()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l00058">TCP_MUTEX_LOCK</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l00059">TCP_MUTEX_UNLOCK</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00336">_pcb</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l00609">_tcp_abort()</a>.</p>
 
 <p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01542">~AsyncServer()</a>.</p>
 <div class="dynheader">
@@ -659,7 +672,7 @@ Here is the caller graph for this function:</div>
 <div class="line"><span class="lineno"> 1548</span>  <a class="code hl_variable" href="#a60008b96eb6407d2376940d9dbcd48a3">_connect_cb_arg</a> = arg;</div>
 <div class="line"><span class="lineno"> 1549</span>}</div>
 </div><!-- fragment -->
-<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00337">_connect_cb</a>, and <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>.</p>
+<p class="reference">References <a class="el" href="_async_t_c_p_8h_source.html#l00338">_connect_cb_arg</a>.</p>
 
 </div>
 </div>
@@ -714,7 +727,7 @@ Here is the caller graph for this function:</div>
 
 </div>
 </div>
-<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Field Documentation</h2>
+<a name="doc-variable-members" id="doc-variable-members"></a><h2 id="header-doc-variable-members" class="groupheader">Member Data Documentation</h2>
 <a id="a5871b4b37c83f8e046130e543a0867be" name="a5871b4b37c83f8e046130e543a0867be"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a5871b4b37c83f8e046130e543a0867be">&#9670;&#160;</a></span>_addr</h2>
 
@@ -763,8 +776,6 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00333">333</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
-
 </div>
 </div>
 <a id="a3728b5bcb47664b3efbaee2e496da9ef" name="a3728b5bcb47664b3efbaee2e496da9ef"></a>
@@ -789,7 +800,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00329">329</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
 
 </div>
 </div>
@@ -815,7 +826,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00330">330</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
 
 </div>
 </div>
@@ -841,8 +852,6 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00337">337</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01617">_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01633">_accepted()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01546">onClient()</a>.</p>
-
 </div>
 </div>
 <a id="a60008b96eb6407d2376940d9dbcd48a3" name="a60008b96eb6407d2376940d9dbcd48a3"></a>
@@ -867,7 +876,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00338">338</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01633">_accepted()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01546">onClient()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01546">onClient()</a>.</p>
 
 </div>
 </div>
@@ -893,7 +902,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00335">335</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01617">_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01644">getNoDelay()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01640">setNoDelay()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01617">_accept()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01644">getNoDelay()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01640">setNoDelay()</a>.</p>
 
 </div>
 </div>
@@ -919,7 +928,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00336">336</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01601">end()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01648">status()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01601">end()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01648">status()</a>.</p>
 
 </div>
 </div>
@@ -945,7 +954,7 @@ Here is the caller graph for this function:</div>
 
 <p class="definition">Definition at line <a class="el" href="_async_t_c_p_8h_source.html#l00328">328</a> of file <a class="el" href="_async_t_c_p_8h_source.html">AsyncTCP.h</a>.</p>
 
-<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01528">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
+<p class="reference">Referenced by <a class="el" href="_async_t_c_p_8cpp_source.html#l01514">AsyncServer()</a>, <a class="el" href="_async_t_c_p_8cpp_source.html#l01532">AsyncServer()</a>, and <a class="el" href="_async_t_c_p_8cpp_source.html#l01551">begin()</a>.</p>
 
 </div>
 </div>

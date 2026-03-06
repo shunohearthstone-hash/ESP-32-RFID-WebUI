@@ -49,7 +49,7 @@
 <script type="application/ecmascript">
 var viewWidth = 668;
 var viewHeight = 104;
-var sectionId = 'dynsection-16';
+var sectionId = 'dynsection-21';
 </script>
 <script type="application/ecmascript" xlink:href="svg.min.js"/>
 <svg id="graph" class="graph">
@@ -100,19 +100,19 @@ var sectionId = 'dynsection-16';
 </a>
 </g>
 </g>
-<!-- Node5 -->
-<g id="Node000005" class="node">
-<title>Node5</title>
-<g id="a_Node000005"><a xlink:href="class_auth_sync.html#ab2999f3e828083471d482f9bde0d72f2" target="_top" xlink:title=" ">
+<!-- Node6 -->
+<g id="Node000006" class="node">
+<title>Node6</title>
+<g id="a_Node000006"><a xlink:href="class_auth_sync.html#ab2999f3e828083471d482f9bde0d72f2" target="_top" xlink:title=" ">
 <polygon fill="white" stroke="#666666" points="291.5,-58 154.75,-58 154.75,-38 291.5,-38 291.5,-58"/>
 <text xml:space="preserve" text-anchor="middle" x="223.12" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">AuthSync::syncFromServer</text>
 </a>
 </g>
 </g>
-<!-- Node2&#45;&gt;Node5 -->
-<g id="edge4_Node000002_Node000005" class="edge">
-<title>Node2&#45;&gt;Node5</title>
-<g id="a_edge4_Node000002_Node000005"><a xlink:title=" ">
+<!-- Node2&#45;&gt;Node6 -->
+<g id="edge4_Node000002_Node000006" class="edge">
+<title>Node2&#45;&gt;Node6</title>
+<g id="a_edge4_Node000002_Node000006"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M315.96,-58.13C307.88,-57.24 299.73,-56.34 291.81,-55.47"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="315.48,-61.6 325.8,-59.22 316.25,-54.64 315.48,-61.6"/>
 </a>
@@ -122,7 +122,7 @@ var sectionId = 'dynsection-16';
 <g id="Node000004" class="node">
 <title>Node4</title>
 <g id="a_Node000004"><a xlink:href="class_auth_sync.html#aeb16a776532ee69ba1ca44b11904a2c2" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="118.75,-96 0,-96 0,-76 118.75,-76 118.75,-96"/>
+<polygon fill="#fff0f0" stroke="red" points="118.75,-96 0,-96 0,-76 118.75,-76 118.75,-96"/>
 <text xml:space="preserve" text-anchor="middle" x="59.38" y="-82.5" font-family="Helvetica,sans-Serif" font-size="10.00">AuthSync::isAuthorized</text>
 </a>
 </g>
@@ -136,37 +136,37 @@ var sectionId = 'dynsection-16';
 </a>
 </g>
 </g>
-<!-- Node6 -->
-<g id="Node000006" class="node">
-<title>Node6</title>
-<g id="a_Node000006"><a xlink:href="class_auth_sync.html#a6834600967f5b023e9810fc2293d2c51" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="103.38,-58 15.38,-58 15.38,-38 103.38,-38 103.38,-58"/>
+<!-- Node7 -->
+<g id="Node000007" class="node">
+<title>Node7</title>
+<g id="a_Node000007"><a xlink:href="class_auth_sync.html#a6834600967f5b023e9810fc2293d2c51" target="_top" xlink:title=" ">
+<polygon fill="#fff0f0" stroke="red" points="103.38,-58 15.38,-58 15.38,-38 103.38,-38 103.38,-58"/>
 <text xml:space="preserve" text-anchor="middle" x="59.38" y="-44.5" font-family="Helvetica,sans-Serif" font-size="10.00">AuthSync::begin</text>
 </a>
 </g>
 </g>
-<!-- Node5&#45;&gt;Node6 -->
-<g id="edge5_Node000005_Node000006" class="edge">
-<title>Node5&#45;&gt;Node6</title>
-<g id="a_edge5_Node000005_Node000006"><a xlink:title=" ">
+<!-- Node6&#45;&gt;Node7 -->
+<g id="edge5_Node000006_Node000007" class="edge">
+<title>Node6&#45;&gt;Node7</title>
+<g id="a_edge5_Node000006_Node000007"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M143.13,-48C129.58,-48 115.96,-48 103.79,-48"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="142.95,-51.5 152.95,-48 142.95,-44.5 142.95,-51.5"/>
 </a>
 </g>
 </g>
-<!-- Node7 -->
-<g id="Node000007" class="node">
-<title>Node7</title>
-<g id="a_Node000007"><a xlink:href="class_auth_sync.html#a19dac50eb59905f92b7da75d12f5f309" target="_top" xlink:title=" ">
-<polygon fill="white" stroke="#666666" points="106.38,-20 12.37,-20 12.37,0 106.38,0 106.38,-20"/>
+<!-- Node9 -->
+<g id="Node000009" class="node">
+<title>Node9</title>
+<g id="a_Node000009"><a xlink:href="class_auth_sync.html#a19dac50eb59905f92b7da75d12f5f309" target="_top" xlink:title=" ">
+<polygon fill="#fff0f0" stroke="red" points="106.38,-20 12.37,-20 12.37,0 106.38,0 106.38,-20"/>
 <text xml:space="preserve" text-anchor="middle" x="59.38" y="-6.5" font-family="Helvetica,sans-Serif" font-size="10.00">AuthSync::update</text>
 </a>
 </g>
 </g>
-<!-- Node5&#45;&gt;Node7 -->
-<g id="edge6_Node000005_Node000007" class="edge">
-<title>Node5&#45;&gt;Node7</title>
-<g id="a_edge6_Node000005_Node000007"><a xlink:title=" ">
+<!-- Node6&#45;&gt;Node9 -->
+<g id="edge6_Node000006_Node000009" class="edge">
+<title>Node6&#45;&gt;Node9</title>
+<g id="a_edge6_Node000006_Node000009"><a xlink:title=" ">
 <path fill="none" stroke="#63b8ff" d="M166.3,-34.88C146.21,-30.17 123.84,-24.91 104.86,-20.45"/>
 <polygon fill="#63b8ff" stroke="#63b8ff" points="165.49,-38.29 176.02,-37.17 167.09,-31.48 165.49,-38.29"/>
 </a>
