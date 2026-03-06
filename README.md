@@ -7,6 +7,7 @@ A small RFID access control project built around an ESP32 with a SSD1306 display
  - Capable of authorization during network interruption 
 - Seamless reconnection. 
 
+[Doxygen - Documentation](https://shunohearthstone-hash.github.io/ESP-32-RFID-WebUI/html/main_8cpp.html)
 
 
 
