@@ -1,0 +1,7 @@
+<map id="AsyncClient::close" name="AsyncClient::close">
+<area shape="rect" id="Node000001" title="close connection" alt="" coords="425,5,556,32"/>
+<area shape="rect" id="Node000002" href="$class_async_client.html#a4bed4e925817d1b918af2ce43fb0859e" title=" " alt="" coords="252,5,377,32"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="407,19,378,21,377,16,412,19"/>
+<area shape="rect" id="Node000003" href="$class_async_telnet.html#a346009ece13de398b1e461f674bbd215" title=" " alt="" coords="5,5,204,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="234,19,204,21,204,16,239,19"/>
+</map>

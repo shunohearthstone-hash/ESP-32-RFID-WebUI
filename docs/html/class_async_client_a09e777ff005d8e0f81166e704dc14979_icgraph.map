@@ -1,0 +1,22 @@
+<map id="AsyncClient::abort" name="AsyncClient::abort">
+<area shape="rect" id="Node000001" title=" " alt="" coords="617,131,747,157"/>
+<area shape="rect" id="Node000002" href="$class_async_client.html#a98ff872bc84919f006f3bb8a249ed36d" title=" " alt="" coords="431,131,569,157"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="599,144,570,147,570,141,604,144"/>
+<area shape="rect" id="Node000003" href="$class_async_client.html#a383d1cb7d684d328362caa5eafc92ca2" title=" " alt="" coords="230,5,357,32"/>
+<area shape="poly" id="edge2_Node000002_Node000003" title=" " alt="" coords="474,119,434,83,382,46,356,35,356,30,384,42,437,79,479,120"/>
+<area shape="rect" id="Node000014" href="$class_async_client.html#aefecfa0c75c8c1b32104115e93739087" title=" " alt="" coords="208,80,379,107"/>
+<area shape="poly" id="edge4_Node000002_Node000014" title=" " alt="" coords="425,127,351,110,351,105,430,126"/>
+<area shape="rect" id="Node000017" href="$class_async_client.html#a0305fe0b036257c03829ceaa5cc43361" title="close connection" alt="" coords="228,131,359,157"/>
+<area shape="poly" id="edge7_Node000002_Node000017" title=" " alt="" coords="413,144,360,147,359,141,419,144"/>
+<area shape="rect" id="Node000020" href="$class_async_client.html#a575c12664279634155259e007c6a104f" title=" " alt="" coords="216,181,371,208"/>
+<area shape="poly" id="edge9_Node000002_Node000020" title=" " alt="" coords="430,161,351,183,350,178,425,162"/>
+<area shape="rect" id="Node000021" href="$class_async_client.html#a4044bdcfd2ca6197f75200644685c5f0" title=" " alt="" coords="204,232,383,259"/>
+<area shape="poly" id="edge10_Node000002_Node000021" title=" " alt="" coords="472,166,431,197,384,222,353,234,352,229,382,218,428,192,467,168"/>
+<area shape="rect" id="Node000004" href="$class_async_client.html#abe187c005c73fe6c0c94e1b3b20b55de" title=" " alt="" coords="10,5,151,32"/>
+<area shape="poly" id="edge3_Node000003_Node000004" title=" " alt="" coords="212,20,153,21,151,16,216,17"/>
+<area shape="poly" id="edge6_Node000014_Node000014" title=" " alt="" coords="327,65,316,61,293,59,272,61,260,65,257,71,263,80,258,79,252,71,256,62,270,55,293,53,318,56,333,65"/>
+<area shape="rect" id="Node000015" href="$class_async_server.html#a51e55999b79eec50bd68e899b8ddd4e4" title=" " alt="" coords="5,80,156,107"/>
+<area shape="poly" id="edge5_Node000014_Node000015" title=" " alt="" coords="190,95,157,96,155,91,194,92"/>
+<area shape="rect" id="Node000018" href="$class_async_client.html#a4bed4e925817d1b918af2ce43fb0859e" title=" " alt="" coords="18,131,143,157"/>
+<area shape="poly" id="edge8_Node000017_Node000018" title=" " alt="" coords="210,145,144,147,143,141,215,143"/>
+</map>

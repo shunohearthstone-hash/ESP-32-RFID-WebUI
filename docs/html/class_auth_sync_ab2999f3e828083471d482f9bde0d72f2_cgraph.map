@@ -1,0 +1,14 @@
+<map id="AuthSync::syncFromServer" name="AuthSync::syncFromServer">
+<area shape="rect" id="Node000001" title=" " alt="" coords="5,51,188,77"/>
+<area shape="rect" id="Node000002" href="$class_auth_sync.html#aab1e2b7beebdab60e16d9b3a50678efd" title=" " alt="" coords="485,25,663,52"/>
+<area shape="poly" id="edge1_Node000001_Node000002" title=" " alt="" coords="125,48,176,27,235,11,304,4,373,4,438,10,498,21,493,22,438,16,373,10,304,9,236,16,178,32,128,52"/>
+<area shape="rect" id="Node000003" href="$class_auth_sync.html#a4a8d3b99ed3bfb87ab36b2abbcce0594" title=" " alt="" coords="239,25,418,52"/>
+<area shape="poly" id="edge2_Node000001_Node000003" title=" " alt="" coords="187,51,226,49,221,51,189,57"/>
+<area shape="rect" id="Node000004" href="$class_auth_sync.html#a96c599b762bdafa672930dfa6f07ff13" title=" " alt="" coords="236,127,422,153"/>
+<area shape="poly" id="edge3_Node000001_Node000004" title=" " alt="" coords="134,75,237,112,262,122,257,122,235,117,133,80"/>
+<area shape="rect" id="Node000006" href="$class_auth_sync.html#a756e144d847c736d9932311d101a8a8f" title=" " alt="" coords="252,76,406,103"/>
+<area shape="poly" id="edge5_Node000001_Node000006" title=" " alt="" coords="188,71,239,79,233,80,188,76"/>
+<area shape="rect" id="Node000005" href="$class_auth_sync.html#ad84e54dba300b040ae8655c915d5313f" title=" " alt="" coords="470,127,678,153"/>
+<area shape="poly" id="edge4_Node000004_Node000005" title=" " alt="" coords="423,137,457,140,452,140,423,143"/>
+<area shape="poly" id="edge6_Node000006_Node000002" title=" " alt="" coords="397,73,489,56,494,55,398,78"/>
+</map>
